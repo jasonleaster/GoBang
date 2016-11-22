@@ -12,12 +12,18 @@ var GoBang = function () {
 
     var _ = this;
     var size    = 15;
-    var chess   = document.getElementById("chess");
-    var context = chess.getContext("2d");
+
+    var chessCanvas = document.getElementById("chessCanvas");
+    var boardCanvas = document.getElementById("boardCanvas");
+    var btnBackStep = document.getElementById("previousStep");
+    var btnNextStep = document.getElementById("nextStep");
+
+    var chessCanvasCtx = chessCanvas.getContext("2d");
+    var boardCanvasCtx = boardCanvas.getContext("2d");
 
     var boardInPx = {
-        width      : parseInt(chess.getAttribute("width")),
-        height     : parseInt(chess.getAttribute("width")), // make sure width == height
+        width      : parseInt(chessCanvas.getAttribute("width")),
+        height     : parseInt(chessCanvas.getAttribute("width")), // make sure width == height
         margin     : 15,
         chessInPx  : 30//(this.width - 2 * this.margin) / (size - 1)
     };
@@ -27,6 +33,13 @@ var GoBang = function () {
     var whoesTurn    = PIECES.WHITE;
 
     var winner;
+
+    // Support back step and next step
+    var historyStep = {
+        currentStep:0,
+        totalStep  :0,
+        steps      :[]
+    };
 
 
     /*--------------------------------------------------------------------*/
@@ -107,10 +120,11 @@ var GoBang = function () {
         init_AI();
 
         // reset the canvas
-        context.clearRect(0, 0, boardInPx.width, boardInPx.height);
-        context.beginPath();
+        chessCanvasCtx.clearRect(0, 0, boardInPx.width, boardInPx.height);
+        chessCanvasCtx.beginPath();
+
         cleanBoard();
-        drawChessBoard();
+        drawChessBoard(boardCanvasCtx);
     };
 
 
@@ -124,25 +138,67 @@ var GoBang = function () {
         }
     }
 
+    function clearChessAtPosition(row, col) {
 
-    function drawChessBoard () {
+        chessBoard[row][col] = PIECES.NONE;
+        chessCanvasCtx.clearRect( row * boardInPx.chessInPx, col * boardInPx.chessInPx,
+                                  boardInPx.chessInPx, boardInPx.chessInPx);
 
-        context.strokeStyle = "#BFBFBF";
+        chessCanvasCtx.beginPath();
+    }
+
+    function drawChessAtPosition(row, col, color) {
+        m          = boardInPx.margin;
+        chessWidth = boardInPx.chessInPx;
+
+        // Draw a circle
+        chessCanvasCtx.beginPath();
+        chessCanvasCtx.arc(m + row * chessWidth, m + col* chessWidth, 13, 0, 2 * Math.PI);
+        chessCanvasCtx.closePath();
+        chessCanvasCtx.fill();
+
+        // Add a gradient effect onto chess(the circle)
+        var gradient = chessCanvasCtx.createRadialGradient(
+            m    + row*chessWidth + 2, m + col*chessWidth - 2, 13,
+            m-10 + row*chessWidth + 2, m + col*chessWidth - 2, 1);
+
+        if(color == PIECES.WHITE){
+
+            gradient.addColorStop(0, "#D1D1D1");
+            gradient.addColorStop(1, "#F9F9F9");
+            chessBoard[row][col] = PIECES.WHITE;
+
+        }else{
+
+            gradient.addColorStop(0, "#0A0A0A");
+            gradient.addColorStop(1, "#636766");
+            chessBoard[row][col] = PIECES.BLACK;
+
+        }
+
+        chessCanvasCtx.fillStyle = gradient;
+        chessCanvasCtx.fill();
+    }
+
+
+    function drawChessBoard (canvasContext) {
+
+        canvasContext.strokeStyle = "#BFBFBF";
 
         m          = boardInPx.margin; // the margin of the GoBang board in pixel.
         chessWidth = boardInPx.chessInPx;
 
         for(var i = 0; i < size; i++){
-            // this.context.moveTo(startX, startY);
-            // this.context.lineTo(endX,   endY);
-            // this.context.stroke();
+            // this.chessCanvasCtx.moveTo(startX, startY);
+            // this.chessCanvasCtx.lineTo(endX,   endY);
+            // this.chessCanvasCtx.stroke();
 
-            context.moveTo(m + i * chessWidth, m);
-            context.lineTo(m + i * chessWidth, boardInPx.width - m);
+            canvasContext.moveTo(m + i * chessWidth, m);
+            canvasContext.lineTo(m + i * chessWidth, boardInPx.width - m);
 
-            context.moveTo(m,                   m + i * chessWidth);
-            context.lineTo(boardInPx.width - m, m + i * chessWidth);
-            context.stroke();
+            canvasContext.moveTo(m,                   m + i * chessWidth);
+            canvasContext.lineTo(boardInPx.width - m, m + i * chessWidth);
+            canvasContext.stroke();
         }
     }
 
@@ -154,44 +210,33 @@ var GoBang = function () {
         }
     }
 
-    function oneStep (i, j) {
-
-        m          = boardInPx.margin;
-        chessWidth = boardInPx.chessInPx;
-
-        // Draw a circle
-        context.beginPath();
-        context.arc(m + i * chessWidth, m + j* chessWidth, 13, 0, 2 * Math.PI);
-        context.closePath();
-        context.fill();
-
-        // Add a gradient effect onto chess(the circle)
-        var gradient = context.createRadialGradient(
-            m    + i*chessWidth + 2, m + j*chessWidth - 2, 13,
-            m-10 + i*chessWidth + 2, m + j*chessWidth - 2, 1);
+    function oneStep (row, col) {
 
         if(isPlayerTurn()){
-            gradient.addColorStop(0, "#D1D1D1");
-            gradient.addColorStop(1, "#F9F9F9");
-
-            chessBoard[i][j] = PIECES.WHITE;
+            drawChessAtPosition(row, col, PIECES.WHITE);
         }else{
-            gradient.addColorStop(0, "#0A0A0A");
-            gradient.addColorStop(1, "#636766");
-
-            chessBoard[i][j] = PIECES.BLACK;
+            drawChessAtPosition(row, col, PIECES.BLACK);
         }
 
-        context.fillStyle = gradient;
-        context.fill();
+        saveStepToHistory(row, col, whoesTurn);
 
         swithTurns();
     }
 
 
-    chess.onclick = User_Step;
+    chessCanvas.onclick = User_Step;
 
     function User_Step(e) {
+        debugger;
+
+        if(historyStep.totalStep != historyStep.currentStep){
+            historyStep.totalStep = historyStep.currentStep;
+
+            for(;historyStep.steps.length > historyStep.totalStep;){
+                step = historyStep.steps.pop();
+                clearChessAtPosition(step.row, step.col);
+            }
+        }
 
         if(! isPlayerTurn()){
             return;
@@ -231,7 +276,6 @@ var GoBang = function () {
 
     function AI_Step() {
 
-        debugger;
         //Evaluation for current situation.
         var myScore = [];
         var AIScore = [];
@@ -304,7 +348,6 @@ var GoBang = function () {
             }
         }
 
-        debugger;
         oneStep(m, n);
 
         for(var k = 0; k < diffWayToWin; k++){
@@ -414,6 +457,62 @@ var GoBang = function () {
 
         return false;
     }
+
+    function saveStepToHistory(i, j, player) {
+
+        historyStep.steps.push(
+            {
+                "row":i,
+                "col":j,
+                "player":player
+            });
+
+        historyStep.currentStep++;
+        historyStep.totalStep = historyStep.currentStep;
+    }
+
+    this.backStep = function () {
+
+        debugger;
+        if(historyStep.currentStep == 0){
+            alert("No more back step!");
+            return
+        }
+
+        step = historyStep.steps[ historyStep.currentStep - 1];
+
+        clearChessAtPosition(step.row, step.col);
+
+        historyStep.currentStep--;
+
+        swithTurns();
+
+    };
+
+    this.nextStep = function () {
+
+        debugger;
+        if(historyStep.currentStep == historyStep.totalStep){
+            alert("No more next step!");
+            return;
+        }
+
+        step = historyStep.steps[ historyStep.currentStep];
+
+        if(isPlayerTurn()){
+            drawChessAtPosition(step.row, step.col, PIECES.WHITE);
+        }else{
+            drawChessAtPosition(step.row, step.col, PIECES.BLACK);
+        }
+
+        historyStep.currentStep++;
+
+        swithTurns();
+    };
+
+    btnBackStep.onclick = this.backStep;
+    btnNextStep.onclick = this.nextStep;
+
 
 };
 

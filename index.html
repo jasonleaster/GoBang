@@ -6,7 +6,19 @@
     <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 <body>
-    <canvas id="chess" width="450px" height="450px"></canvas>
+
+    <!--Two different layer for separating the chess and the board -->
+
+    <canvas id="boardCanvas" width="450px" height="450px"></canvas>
+
+    <canvas id="chessCanvas" width="450px" height="450px"></canvas>
+
+
     <script type="application/javascript" src="js/script.js"></script>
+
+    <button id="previousStep">Previous Step</button>
+    <button id="nextStep"    >Next     Step</button>
+
+    <div id="currentStep">Current Step: </div>
 </body>
 </html>
