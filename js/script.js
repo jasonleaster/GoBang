@@ -98,9 +98,9 @@ var GoBang = function () {
     var myWins = [];
     var AIWins = [];
     function _init_statisticPossibleToWin() {
-        for(var i = 0; i < diffWayToWin; i++){
-            myWins[i] = 0;
-            AIWins[i] = 0;
+        for(var k = 0; k < diffWayToWin; k++){
+            myWins[k] = 0;
+            AIWins[k] = 0;
         }
     }
 
@@ -140,11 +140,45 @@ var GoBang = function () {
 
     function clearChessAtPosition(row, col) {
 
-        chessBoard[row][col] = PIECES.NONE;
-        chessCanvasCtx.clearRect( row * boardInPx.chessInPx, col * boardInPx.chessInPx,
-                                  boardInPx.chessInPx, boardInPx.chessInPx);
+        debugger;
+        if (chessBoard[row][col] != PIECES.NONE) {
 
-        chessCanvasCtx.beginPath();
+            for (var k = 0; k < diffWayToWin; k++) {
+                if (waysToWin[row][col][k]) {
+
+                    /**
+                     * 由于计算机在瞬间就完成下子
+                     * 用户触发回退的按钮时，其实 whoseTurn已经变成用户了
+                     * 但是还是要回退，这里其实是用户强迫电脑撤销下子，所以
+                     * 这里isPlayerTurn() 取反，对应用户情况
+                     * **/
+                    if(!isPlayerTurn()){
+                        if(0 < myWins[k] && myWins[k] < 5){
+                            myWins[k]--;
+                        }
+                        if(AIWins[k] == 6){
+                            AIWins[k] = 0;
+                        }
+                    }else {
+                        if(0 < AIWins[k] && AIWins[k] < 5){
+                            AIWins[k]--;
+                        }
+                        if(myWins[k] == 6){
+                            myWins[k] = 0;
+                        }
+                    }
+                }
+            }
+
+
+            chessBoard[row][col] = PIECES.NONE;
+
+            chessCanvasCtx.clearRect( row * boardInPx.chessInPx, col * boardInPx.chessInPx,
+                boardInPx.chessInPx, boardInPx.chessInPx);
+
+            chessCanvasCtx.beginPath();
+
+        }
     }
 
     function drawChessAtPosition(row, col, color) {
@@ -227,19 +261,17 @@ var GoBang = function () {
     chessCanvas.onclick = User_Step;
 
     function User_Step(e) {
-        debugger;
+
+        if(!isPlayerTurn()){
+            return
+        }
 
         if(historyStep.totalStep != historyStep.currentStep){
             historyStep.totalStep = historyStep.currentStep;
 
             for(;historyStep.steps.length > historyStep.totalStep;){
                 step = historyStep.steps.pop();
-                clearChessAtPosition(step.row, step.col);
             }
-        }
-
-        if(! isPlayerTurn()){
-            return;
         }
 
         var x = e.offsetX;
@@ -250,6 +282,8 @@ var GoBang = function () {
 
         if(chessBoard[i][j] == 0){
             oneStep(i, j);
+        }else{
+            return
         }
 
         for(var k = 0; k < diffWayToWin; k++){
@@ -261,6 +295,7 @@ var GoBang = function () {
 
         if(isGameOver()){
             window.alert("Game Over the User win!");
+            //Persistance.downloadAsJson(historyStep);
             _.initBoard();
             return;
         }
@@ -269,12 +304,25 @@ var GoBang = function () {
 
         if(isGameOver()){
             window.alert("Game Over the AI win!");
+            //Persistance.downloadAsJson(historyStep);
             _.initBoard();
             return;
         }
     }
 
     function AI_Step() {
+
+        if(isPlayerTurn()){
+            return
+        }
+
+        if(historyStep.totalStep != historyStep.currentStep){
+            historyStep.totalStep = historyStep.currentStep;
+
+            for(;historyStep.steps.length > historyStep.totalStep;){
+                step = historyStep.steps.pop();
+            }
+        }
 
         //Evaluation for current situation.
         var myScore = [];
@@ -283,28 +331,28 @@ var GoBang = function () {
         var maxScore= 0;
         var m = 0, n = 0;//position where get the max score
 
-        for (var i = 0; i < 15; i++){
+        for (var i = 0; i < size; i++){
             myScore[i] = [];
             AIScore[i] = [];
-            for(var j = 0; j < 15; j++){
+            for(var j = 0; j < size; j++){
                 myScore[i][j] = 0;
                 AIScore[i][j] = 0;
             }
         }
 
-        for(var i = 0; i < 15; i++){
-            for(var j = 0; j < 15; j++){
+        for(var i = 0; i < size; i++){
+            for(var j = 0; j < size; j++){
 
                 if(chessBoard[i][j] == PIECES.NONE){
                     //can drap a chess
                     for(var k = 0; k < diffWayToWin; k++){
                         if(waysToWin[i][j][k]){
                             if(myWins[k] == 1){
-                                myScore[i][j] += 210;
+                                myScore[i][j] += 1;
                             }else if(myWins[k] == 2){
-                                myScore[i][j] += 420;
+                                myScore[i][j] += 9;
                             }else if(myWins[k] == 3){
-                                myScore[i][j] += 850;
+                                myScore[i][j] += 73;
                             }else if(myWins[k] == 4){
                                 myScore[i][j] += 10000;
                             }
@@ -312,11 +360,11 @@ var GoBang = function () {
 
                         if(waysToWin[i][j][k]){
                             if(AIWins[k] == 1){
-                                AIScore[i][j] += 200;
+                                AIScore[i][j] += 1;
                             }else if(AIWins[k] == 2){
-                                AIScore[i][j] += 400;
+                                AIScore[i][j] += 10;
                             }else if(AIWins[k] == 3){
-                                AIScore[i][j] += 800;
+                                AIScore[i][j] += 60;
                             }else if(AIWins[k] == 4){
                                 AIScore[i][j] += 20000;
                             }
