@@ -396,6 +396,8 @@ var GoBang = function () {
             }
         }
 
+        console.log("The AI pick best score is: " + maxScore + " location(m, n): " + n + ", " + m);
+
         oneStep(m, n);
 
         for(var k = 0; k < diffWayToWin; k++){

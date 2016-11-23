@@ -48,8 +48,8 @@
       <file leaf-file-name="script.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/js/script.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2733">
-              <caret line="420" column="13" selection-start-line="420" selection-start-column="13" selection-end-line="420" selection-end-column="13" />
+            <state relative-caret-position="1351">
+              <caret line="405" column="22" selection-start-line="405" selection-start-column="22" selection-end-line="405" selection-end-column="22" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
                 <element signature="e#4680#5675#0" expanded="false" />
@@ -61,8 +61,8 @@
                 <element signature="e#7924#8088#0" expanded="false" />
                 <element signature="e#8667#8863#0" expanded="false" />
                 <element signature="e#8902#11015#0" expanded="false" />
-                <element signature="e#11580#13935#0" expanded="false" />
-                <element signature="e#13982#14227#0" expanded="false" />
+                <element signature="e#11681#14036#0" expanded="false" />
+                <element signature="e#14083#14328#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -253,15 +253,15 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1479542168518</updated>
-      <workItem from="1479542170376" duration="54776000" />
+      <workItem from="1479542170376" duration="55480000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="54776000" />
+    <option name="totallyTimeSpent" value="55480000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1382" height="784" extended-state="7" />
+    <frame x="-8" y="-8" width="1382" height="784" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24963397" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -326,8 +326,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/js/script.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2733">
-          <caret line="420" column="13" selection-start-line="420" selection-start-column="13" selection-end-line="420" selection-end-column="13" />
+        <state relative-caret-position="1351">
+          <caret line="405" column="22" selection-start-line="405" selection-start-column="22" selection-end-line="405" selection-end-column="22" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
             <element signature="e#4680#5675#0" expanded="false" />
@@ -339,8 +339,8 @@
             <element signature="e#7924#8088#0" expanded="false" />
             <element signature="e#8667#8863#0" expanded="false" />
             <element signature="e#8902#11015#0" expanded="false" />
-            <element signature="e#11580#13935#0" expanded="false" />
-            <element signature="e#13982#14227#0" expanded="false" />
+            <element signature="e#11681#14036#0" expanded="false" />
+            <element signature="e#14083#14328#0" expanded="false" />
           </folding>
         </state>
       </provider>
