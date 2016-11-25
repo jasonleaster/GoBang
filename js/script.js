@@ -97,8 +97,10 @@ var GoBang = function () {
 
     var myWins = [];
     var AIWins = [];
+
     var myWinsPossible = [];
     var AIWinsPossible = [];
+
     function _init_statisticPossibleToWin() {
         for(var k = 0; k < diffWayToWin; k++){
             myWins[k] = 0;
@@ -106,6 +108,7 @@ var GoBang = function () {
 
             myWinsPossible[k] = true;
             AIWinsPossible[k] = true;
+
         }
     }
 
@@ -172,7 +175,6 @@ var GoBang = function () {
                         if(0 < AIWins[k] && AIWins[k] < 5){
                             AIWins[k]--;
                         }
-                        
                     }
                 }
             }
@@ -409,7 +411,9 @@ var GoBang = function () {
 
         for(var k = 0; k < diffWayToWin; k++){
             if(waysToWin[m][n][k]){
+
                 myWinsPossible[k] = false;
+
                 AIWins[k]++;
             }
         }
@@ -572,7 +576,6 @@ var GoBang = function () {
 
 
 };
-
 
 
 window.onload = function () {
