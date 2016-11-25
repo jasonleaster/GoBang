@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>五子棋</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+<body>
+
+    <!--Two different layer for separating the chess and the board -->
+
+    <canvas id="boardCanvas" width="450px" height="450px"></canvas>
+
+    <canvas id="chessCanvas" width="450px" height="450px"></canvas>
+
+
+    <script type="application/javascript" src="js/script.js"></script>
+    <script type="application/javascript" src="js/saveTheGame.js"></script>
+
+    <button id="previousStep">Previous Step</button>
+    <button id="nextStep"    >Next     Step</button>
+
+    <div id="currentStep">Current Step: </div>
+
+    <a id="downloadAnchorElem" style="display:none"></a>
+</body>
+</html>
