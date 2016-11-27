@@ -4,24 +4,122 @@
     <meta charset="UTF-8">
     <title>五子棋</title>
     <link rel="stylesheet" type="text/css" href="css/style.css">
-</head>
-<body>
+    <!-- Bootstrap Core CSS -->
+    <link href="lib/css/bootstrap.min.css" rel="stylesheet">
 
-    <!--Two different layer for separating the chess and the board -->
+    <!-- Custom CSS -->
+    <link href="css/simple-sidebar.css" rel="stylesheet">
 
-    <canvas id="boardCanvas" width="450px" height="450px"></canvas>
 
-    <canvas id="chessCanvas" width="450px" height="450px"></canvas>
-
+    <script type="application/javascript" src="js/UserInterface.js"></script>
+    <script type="application/javascript" src="js/HistorySteps.js"></script>
 
     <script type="application/javascript" src="js/script.js"></script>
-    <script type="application/javascript" src="js/saveTheGame.js"></script>
+</head>
+    <body>
 
-    <button id="previousStep">Previous Step</button>
-    <button id="nextStep"    >Next     Step</button>
+        <div id="wrapper">
+            <!-- Sidebar -->
+            <div id="sidebar-wrapper">
 
-    <div id="currentStep">Current Step: </div>
 
-    <a id="downloadAnchorElem" style="display:none"></a>
-</body>
+                <div class="logo">
+                    <a href="./index.html">GoBang</a>
+                </div>
+
+
+                <div class="sidebar-text">
+                    <p>GoBang(Standard Gomoku)规则:</p>
+                    <br>
+                    <ol>
+                        <li>
+                            白子(人类用户)先行，黑白双方轮流落子。
+                        </li>
+                        <li>
+                            首先在横、竖、斜方向上成五（连续五个己方棋子）者为胜。
+                        </li>
+                        <li>
+                            超过五子以上不算赢也不算输
+                        </li>
+                    </ol>
+
+                </div>
+
+                <div class="sidebar-text">
+                    <p>项目说明:</p>
+
+                    <p>
+                        这是一个五子棋AI程序，你可以尝试和程序的核心算法由JavaScript实现。
+                        作者是EOF, 你可以在<a href="https://github.com/jasonleaster/GoBang">Github</a>上获取
+                        程序实现的所有源代码。如果能看懂我的实现，并且有兴趣的改进这个程序，你可以fork我的repository，
+                        也可以E-mail联系我 : )
+
+                    </p>
+
+                    <p>
+                        目前支持，悔棋、以json文件形式保存棋局、重新开始。
+                    </p>
+
+                    <br>
+                    <p>来！和我的AI玩一把这个简单的游戏吧</p>
+                </div>
+            </div>
+            <!-- /#sidebar-wrapper -->
+
+            <!-- Page Content -->
+            <div id="page-content-wrapper">
+                <div class="container-fluid">
+
+                    <div class="row">
+                        <a href="#menu-toggle" class="btn btn-default" id="menu-toggle">信息提示</a>
+
+                        <div>
+                            <div id="currentStep">Current Step:</div>
+                            <div id="totalStep">Total Steps:</div>
+                        </div>
+                    </div>
+
+                    <canvas id="boardCanvas"></canvas>
+                    <canvas id="chessCanvas"></canvas>
+
+                    <ul class="buttonGroups">
+                        <li>
+                            <button id="previousStep" class="btn btn-primary btn-block">Previous Step</button>
+                        </li>
+                        <!--<li>-->
+                            <!--<button id="nextStep" class="btn btn-primary btn-block">Next Step</button>-->
+                        <!--</li>-->
+                        <li>
+                            <button id="saveTheBoard" class="btn btn-success btn-block">Save the board</button>
+                        </li>
+                        <li>
+                            <button id="restart" class="btn btn-warning btn-block">Restart</button>
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </div>
+            <!-- /#page-content-wrapper -->
+
+        </div>
+        <!--Two different layer for separating the chess and the board -->
+
+        <a id="downloadAnchorElem" style="display:none"></a>
+
+        <!-- jQuery -->
+        <script src="lib/js/jquery.js"></script>
+
+        <!-- Bootstrap Core JavaScript -->
+        <script src="lib/js/bootstrap.min.js"></script>
+
+        <!-- Menu Toggle Script -->
+        <script>
+            $("#menu-toggle").click(function (e) {
+                e.preventDefault();
+                $("#wrapper").toggleClass("toggled");
+            });
+        </script>
+    </body>
 </html>

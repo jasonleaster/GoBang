@@ -8,3 +8,18 @@ canvas{
     bottom: 0px;
     right: 0px;
 }
+
+.buttonGroups{
+    list-style: none;
+    width: 180px;
+
+    position: relative;
+    top : 220px;
+    left: 80%;
+    right: 0px;
+    bottom: 0px;
+}
+
+.buttonGroups li{
+    padding-bottom: 10px;
+}

@@ -4,54 +4,30 @@
  * Date     : 2016/11/19.
  */
 
-
-/*
- * Constants in game.
- * */
 var GoBang = function () {
 
-    var _ = this;
+    var envPointer = this;
     var size    = 15;
-
-    var chessCanvas = document.getElementById("chessCanvas");
-    var boardCanvas = document.getElementById("boardCanvas");
-    var btnBackStep = document.getElementById("previousStep");
-    var btnNextStep = document.getElementById("nextStep");
-
-    var chessCanvasCtx = chessCanvas.getContext("2d");
-    var boardCanvasCtx = boardCanvas.getContext("2d");
-
-    var boardInPx = {
-        width      : parseInt(chessCanvas.getAttribute("width")),
-        height     : parseInt(chessCanvas.getAttribute("width")), // make sure width == height
-        margin     : 15,
-        chessInPx  : 30//(this.width - 2 * this.margin) / (size - 1)
-    };
 
     var chessBoard   = [];
     var PIECES       = { NONE  : 0, WHITE : 1, BLACK : 2};
-    var whoesTurn    = PIECES.WHITE;
-
     var winner;
 
-    // Support back step and next step
-    var historyStep = {
-        currentStep:0,
-        totalStep  :0,
-        steps      :[]
-    };
-
-
-    /*--------------------------------------------------------------------*/
-
+    var whoesTurn    = PIECES.WHITE;
     function isPlayerTurn() {
         return whoesTurn == PIECES.WHITE;
     }
 
+    var userInerface = new UI(size);
+    var historySteps = new HistoryStep();
+
+    /*--------------------------------------------------------------------*/
     //AI
     var diffWayToWin = 0;
     var waysToWin    = [];
     function _init_waysToWin() {
+
+        diffWayToWin = 0;
 
         for(var i = 0; i < size; i++){
             waysToWin[i] = [];
@@ -97,10 +73,15 @@ var GoBang = function () {
 
     var myWins = [];
     var AIWins = [];
+    var myWinsPossible = [];
+    var AIWinsPossible = [];
     function _init_statisticPossibleToWin() {
         for(var k = 0; k < diffWayToWin; k++){
             myWins[k] = 0;
             AIWins[k] = 0;
+
+            myWinsPossible[k] = true;
+            AIWinsPossible[k] = true;
         }
     }
 
@@ -111,24 +92,6 @@ var GoBang = function () {
         _init_statisticPossibleToWin();
     }
 
-    // public method
-    this.initBoard = function() {
-
-        diffWayToWin = 0;
-        whoesTurn    = PIECES.WHITE;
-
-        init_AI();
-
-        // reset the canvas
-        chessCanvasCtx.clearRect(0, 0, boardInPx.width, boardInPx.height);
-        chessCanvasCtx.beginPath();
-
-        cleanBoard();
-        drawChessBoard(boardCanvasCtx);
-    };
-
-
-    // private method
     function cleanBoard() {
         for(var i = 0; i < size; i++){
             chessBoard[i] = [];
@@ -137,6 +100,30 @@ var GoBang = function () {
             }
         }
     }
+
+    function isEmptyLocation(row, col) {
+
+        return chessBoard[row][col] == PIECES.NONE ;
+    }
+
+    // public method
+    this.start = function() {
+
+        userInerface = new UI(size);
+        historySteps = new HistoryStep();
+
+        userInerface.reset();
+
+        userInerface.setCurrentStepinUI( historySteps.getCurrentStep() );
+        userInerface.setTotalStepinUI(   historySteps.getTotalStep() );
+
+        whoesTurn    = PIECES.WHITE;
+
+        init_AI();
+        cleanBoard();
+
+    };
+
 
     function clearChessAtPosition(row, col) {
 
@@ -153,18 +140,19 @@ var GoBang = function () {
                      * 这里isPlayerTurn() 取反，对应用户情况
                      * **/
                     if(!isPlayerTurn()){
+                        if(myWins[k] == 1){
+                            AIWinsPossible[k] = true;
+                        }
                         if(0 < myWins[k] && myWins[k] < 5){
                             myWins[k]--;
                         }
-                        if(AIWins[k] == 6){
-                            AIWins[k] = 0;
-                        }
+
                     }else {
+                        if(AIWins[k] == 1){
+                            myWinsPossible[k] = true;
+                        }
                         if(0 < AIWins[k] && AIWins[k] < 5){
                             AIWins[k]--;
-                        }
-                        if(myWins[k] == 6){
-                            myWins[k] = 0;
                         }
                     }
                 }
@@ -173,66 +161,10 @@ var GoBang = function () {
 
             chessBoard[row][col] = PIECES.NONE;
 
-            chessCanvasCtx.clearRect( row * boardInPx.chessInPx, col * boardInPx.chessInPx,
-                boardInPx.chessInPx, boardInPx.chessInPx);
+            userInerface.clearChessAtPosition(row, col);
+            userInerface.setCurrentStepinUI( historySteps.getCurrentStep() );
+            userInerface.setTotalStepinUI(   historySteps.getTotalStep() );
 
-            chessCanvasCtx.beginPath();
-
-        }
-    }
-
-    function drawChessAtPosition(row, col, color) {
-        m          = boardInPx.margin;
-        chessWidth = boardInPx.chessInPx;
-
-        // Draw a circle
-        chessCanvasCtx.beginPath();
-        chessCanvasCtx.arc(m + row * chessWidth, m + col* chessWidth, 13, 0, 2 * Math.PI);
-        chessCanvasCtx.closePath();
-        chessCanvasCtx.fill();
-
-        // Add a gradient effect onto chess(the circle)
-        var gradient = chessCanvasCtx.createRadialGradient(
-            m    + row*chessWidth + 2, m + col*chessWidth - 2, 13,
-            m-10 + row*chessWidth + 2, m + col*chessWidth - 2, 1);
-
-        if(color == PIECES.WHITE){
-
-            gradient.addColorStop(0, "#D1D1D1");
-            gradient.addColorStop(1, "#F9F9F9");
-            chessBoard[row][col] = PIECES.WHITE;
-
-        }else{
-
-            gradient.addColorStop(0, "#0A0A0A");
-            gradient.addColorStop(1, "#636766");
-            chessBoard[row][col] = PIECES.BLACK;
-
-        }
-
-        chessCanvasCtx.fillStyle = gradient;
-        chessCanvasCtx.fill();
-    }
-
-
-    function drawChessBoard (canvasContext) {
-
-        canvasContext.strokeStyle = "#BFBFBF";
-
-        m          = boardInPx.margin; // the margin of the GoBang board in pixel.
-        chessWidth = boardInPx.chessInPx;
-
-        for(var i = 0; i < size; i++){
-            // this.chessCanvasCtx.moveTo(startX, startY);
-            // this.chessCanvasCtx.lineTo(endX,   endY);
-            // this.chessCanvasCtx.stroke();
-
-            canvasContext.moveTo(m + i * chessWidth, m);
-            canvasContext.lineTo(m + i * chessWidth, boardInPx.width - m);
-
-            canvasContext.moveTo(m,                   m + i * chessWidth);
-            canvasContext.lineTo(boardInPx.width - m, m + i * chessWidth);
-            canvasContext.stroke();
         }
     }
 
@@ -247,32 +179,44 @@ var GoBang = function () {
     function oneStep (row, col) {
 
         if(isPlayerTurn()){
-            drawChessAtPosition(row, col, PIECES.WHITE);
+            userInerface.drawChessAtPosition(row, col, "white");
+            chessBoard[row][col] = PIECES.WHITE;
         }else{
-            drawChessAtPosition(row, col, PIECES.BLACK);
+            userInerface.drawChessAtPosition(row, col, "black");
+            chessBoard[row][col] = PIECES.BLACK;
         }
 
-        saveStepToHistory(row, col, whoesTurn);
+        historySteps.saveStepToHistory(row, col, whoesTurn);
+
+        userInerface.setCurrentStepinUI( historySteps.getCurrentStep() );
+        userInerface.setTotalStepinUI(   historySteps.getTotalStep() );
 
         swithTurns();
     }
 
+    function _User_step(row, col) {
+        if(isEmptyLocation(row, col)){
+            oneStep(row, col);
+        }else{
+            return
+        }
 
-    chessCanvas.onclick = User_Step;
+        for(var k = 0; k < diffWayToWin; k++){
+            if(waysToWin[row][col][k]){
+                myWins[k]++;
+                AIWinsPossible[k] = false;
+            }
+        }
+    }
 
     function User_Step(e) {
 
+        debugger;
         if(!isPlayerTurn()){
             return
         }
 
-        if(historyStep.totalStep != historyStep.currentStep){
-            historyStep.totalStep = historyStep.currentStep;
-
-            for(;historyStep.steps.length > historyStep.totalStep;){
-                step = historyStep.steps.pop();
-            }
-        }
+        historySteps.SyncHistoryToCurrentStep();
 
         var x = e.offsetX;
         var y = e.offsetY;
@@ -280,23 +224,11 @@ var GoBang = function () {
         var i = Math.floor(x / 30);
         var j = Math.floor(y / 30);
 
-        if(chessBoard[i][j] == 0){
-            oneStep(i, j);
-        }else{
-            return
-        }
-
-        for(var k = 0; k < diffWayToWin; k++){
-            if(waysToWin[i][j][k]){
-                myWins[k]++;
-                AIWins[k] = 6;
-            }
-        }
+        _User_step(i, j);
 
         if(isGameOver()){
             window.alert("Game Over the User win!");
-            //Persistance.downloadAsJson(historyStep);
-            _.initBoard();
+            envPointer.start();
             return;
         }
 
@@ -304,9 +236,19 @@ var GoBang = function () {
 
         if(isGameOver()){
             window.alert("Game Over the AI win!");
-            //Persistance.downloadAsJson(historyStep);
-            _.initBoard();
+            envPointer.start();
             return;
+        }
+    }
+
+    function _AI_Step(row, col) {
+        oneStep(row, col);
+
+        for(var k = 0; k < diffWayToWin; k++){
+            if(waysToWin[row][col][k]){//
+                myWinsPossible[k] = false;
+                AIWins[k]++;
+            }
         }
     }
 
@@ -316,13 +258,7 @@ var GoBang = function () {
             return
         }
 
-        if(historyStep.totalStep != historyStep.currentStep){
-            historyStep.totalStep = historyStep.currentStep;
-
-            for(;historyStep.steps.length > historyStep.totalStep;){
-                step = historyStep.steps.pop();
-            }
-        }
+        historySteps.SyncHistoryToCurrentStep();
 
         //Evaluation for current situation.
         var myScore = [];
@@ -346,7 +282,7 @@ var GoBang = function () {
                 if(chessBoard[i][j] == PIECES.NONE){
                     //can drap a chess
                     for(var k = 0; k < diffWayToWin; k++){
-                        if(waysToWin[i][j][k]){
+                        if(waysToWin[i][j][k] && myWinsPossible[k]){
                             if(myWins[k] == 1){
                                 myScore[i][j] += 1;
                             }else if(myWins[k] == 2){
@@ -358,7 +294,7 @@ var GoBang = function () {
                             }
                         }
 
-                        if(waysToWin[i][j][k]){
+                        if(waysToWin[i][j][k] && AIWinsPossible[k]){
                             if(AIWins[k] == 1){
                                 AIScore[i][j] += 1;
                             }else if(AIWins[k] == 2){
@@ -398,14 +334,7 @@ var GoBang = function () {
 
         console.log("The AI pick best score is: " + maxScore + " location(m, n): " + n + ", " + m);
 
-        oneStep(m, n);
-
-        for(var k = 0; k < diffWayToWin; k++){
-            if(waysToWin[m][n][k]){
-                myWins[k] = 6;
-                AIWins[k]++;
-            }
-        }
+        _AI_Step(m, n);
 
     }
 
@@ -508,67 +437,39 @@ var GoBang = function () {
         return false;
     }
 
-    function saveStepToHistory(i, j, player) {
-
-        historyStep.steps.push(
-            {
-                "row":i,
-                "col":j,
-                "player":player
-            });
-
-        historyStep.currentStep++;
-        historyStep.totalStep = historyStep.currentStep;
-    }
-
     this.backStep = function () {
 
-        debugger;
-        if(historyStep.currentStep == 0){
-            alert("No more back step!");
-            return
-        }
-
-        step = historyStep.steps[ historyStep.currentStep - 1];
+        var step = historySteps.stepBack();
 
         clearChessAtPosition(step.row, step.col);
 
-        historyStep.currentStep--;
-
-        swithTurns();
-
-    };
-
-    this.nextStep = function () {
-
-        debugger;
-        if(historyStep.currentStep == historyStep.totalStep){
-            alert("No more next step!");
-            return;
-        }
-
-        step = historyStep.steps[ historyStep.currentStep];
-
-        if(isPlayerTurn()){
-            drawChessAtPosition(step.row, step.col, PIECES.WHITE);
-        }else{
-            drawChessAtPosition(step.row, step.col, PIECES.BLACK);
-        }
-
-        historyStep.currentStep++;
-
         swithTurns();
     };
 
-    btnBackStep.onclick = this.backStep;
-    btnNextStep.onclick = this.nextStep;
+    // this.nextStep = function () {
+    //
+    //     var step = historySteps.stepNext();
+    //
+    //     if(isPlayerTurn()){
+    //         _User_step(step.row, step.col);
+    //     }else {
+    //         _AI_Step(step.row, step.col);
+    //     }
+    // };
 
+    var btn     = userInerface.getBtnBackStep();
+    btn.onclick = this.backStep;
+    // Not Support yet
+    // btn         = userInerface.getBtnNextStep();
+    // btn.onclick = this.nextStep;
+
+    userInerface.setUserClickFunc(User_Step);
+    userInerface.setBtnRestart(this.start);
+    userInerface.setBtnSaveTheBoard(historySteps.downloadAsJson);
 
 };
 
-
-
 window.onload = function () {
     var game = new GoBang();
-    game.initBoard();
+    game.start();
 };
