@@ -73,8 +73,10 @@ var GoBang = function () {
 
     var myWins = [];
     var AIWins = [];
+
     var myWinsPossible = [];
     var AIWinsPossible = [];
+
     function _init_statisticPossibleToWin() {
         for(var k = 0; k < diffWayToWin; k++){
             myWins[k] = 0;
@@ -140,7 +142,8 @@ var GoBang = function () {
                      * 这里isPlayerTurn() 取反，对应用户情况
                      * **/
                     if(!isPlayerTurn()){
-                        if(myWins[k] == 1){
+
+                    	if(myWins[k] == 1){
                             AIWinsPossible[k] = true;
                         }
                         if(0 < myWins[k] && myWins[k] < 5){
@@ -148,7 +151,7 @@ var GoBang = function () {
                         }
 
                     }else {
-                        if(AIWins[k] == 1){
+                    	if(AIWins[k] == 1){
                             myWinsPossible[k] = true;
                         }
                         if(0 < AIWins[k] && AIWins[k] < 5){
@@ -224,7 +227,9 @@ var GoBang = function () {
         var i = Math.floor(x / 30);
         var j = Math.floor(y / 30);
 
+
         _User_step(i, j);
+
 
         if(isGameOver()){
             window.alert("Game Over the User win!");

@@ -1,11 +1,15 @@
 GoBang Game in JavaScript with navtive AI
 
-Current Version: 1.1
+Current Version: 3.0
 
 ### Version
 
-1.2 : Support to download history steps as json files.
+3.0 : With a better friendly user interface.
 
-1.1 : Support back step.
+2.0 : Support to download history steps as json files.
+
+1.2 : Attributes ==> The program will download the history steps after game over.
+
+1.1 : Attributes ==> Support back step.
 
 1.0 : A basic implementation of GoBang with AI.
