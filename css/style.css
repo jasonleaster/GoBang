@@ -13,9 +13,9 @@ canvas{
     list-style: none;
     width: 180px;
 
-    position: relative;
-    top : 220px;
-    left: 80%;
+    position: absolute;
+    top : 200px;
+    left: calc(50% + 200px);
     right: 0px;
     bottom: 0px;
 }
