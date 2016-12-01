@@ -193,6 +193,7 @@ var GoBang = function () {
 
         userInerface.setCurrentStepinUI( historySteps.getCurrentStep() );
         userInerface.setTotalStepinUI(   historySteps.getTotalStep() );
+
         userInerface.showLocation(row, col);
 
         swithTurns();

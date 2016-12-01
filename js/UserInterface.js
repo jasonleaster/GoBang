@@ -168,5 +168,6 @@ var UI = function (boardSize) {
         canvasContext.moveTo(m,                      m + col * chessWidth);
         canvasContext.lineTo(BoardInPixel.width - m, m + col * chessWidth);
         canvasContext.stroke();
-    };
+    }
+
 };
