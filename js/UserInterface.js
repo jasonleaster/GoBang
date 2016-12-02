@@ -18,6 +18,8 @@ var UI = function (boardSize) {
     var chessCanvas    = document.getElementById("chessCanvas");
     var boardCanvas    = document.getElementById("boardCanvas");
 
+    var audio = document.getElementById("dropPieceVoice");
+
     var chessCanvasCtx = chessCanvas.getContext("2d");
     var boardCanvasCtx = boardCanvas.getContext("2d");
 
@@ -70,6 +72,9 @@ var UI = function (boardSize) {
         chessCanvasCtx.beginPath();
     };
 
+    function playVoice() {
+        audio.play();
+    }
 
     this.drawChessAtPosition = function (row, col, color) {
 
@@ -108,6 +113,7 @@ var UI = function (boardSize) {
         chessCanvasCtx.fillStyle = gradient;
         chessCanvasCtx.fill();
 
+        playVoice();
     };
 
     function drawChessBoard(color) {
@@ -150,7 +156,6 @@ var UI = function (boardSize) {
 
     this.showLocation = function(row, col){
 
-        debugger;
         canvasContext = boardCanvasCtx;
 
         m          = BoardInPixel.margin; // the margin of the GoBang board in pixel.
@@ -169,5 +174,4 @@ var UI = function (boardSize) {
         canvasContext.lineTo(BoardInPixel.width - m, m + col * chessWidth);
         canvasContext.stroke();
     }
-
 };

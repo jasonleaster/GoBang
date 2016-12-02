@@ -4,23 +4,120 @@
  * Date     : 2016/11/19.
  */
 
-var GoBang = function () {
+var PIECES_TYPE = { NONE  : 0, WHITE : 1, BLACK : 2};
 
-    var envPointer = this;
-    var size    = 15;
+function Board(size) {
+    var _size  = size;
+    var _chessBoard = [];
+    var width  = _size;
+    var height = _size;
 
-    var chessBoard   = [];
-    var PIECES       = { NONE  : 0, WHITE : 1, BLACK : 2};
-    var winner;
+    /*
+    * Private Methods
+    * */
 
-    var whoesTurn    = PIECES.WHITE;
+    /**
+     * Clean the board and set all slot into none;
+     */
+    function cleanBoard() {
+        _chessBoard = [];
+        for(var i = 0; i < size; i++){
+            _chessBoard[i] = [];
+            for(var j = 0; j < size; j++){
+                _chessBoard[i][j] = PIECES_TYPE.NONE;
+            }
+        }
+    }
+
+    /**
+     * Check the validation of index.
+     *
+     * @param row
+     * @param col
+     * @returns {boolean}
+     */
+    function legalIndex(row, col) {
+        if(row < 0 || col < 0 ||
+            row > size || col > size){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Private Methods
+     */
+
+    /**
+     * Determine whether there have a piece.
+     *
+     * @param row
+     * @param col
+     * @returns {boolean}
+     */
+    this.isEmptyLocation = function (row, col) {
+
+        if(!legalIndex()){
+            return;
+        }
+
+        return _chessBoard[row][col] == PIECES_TYPE.NONE ;
+    };
+
+    this.setPiece = function (row, col, piece) {
+        if(!legalIndex(row, col)){
+            return;
+        }
+        _chessBoard[row][col] = piece;
+    };
+
+    this.getPiece = function (row, col) {
+        if(!legalIndex(row, col)){
+            return;
+        }
+        return _chessBoard[row][col];
+    };
+
+    this.getSize = function () {
+        return _size;
+    };
+
+    this.Init = function (){
+        cleanBoard();
+    };
+
+    this.Init();
+}
+
+var board = new Board(5);
+
+var GoBang = function (board) {
+
+    var chessBoard = board;
+
+    var size = board.getSize();
+
+    var winner;  // Value belongs into {PIECE}
+    var gameOver = false;
+
+    var whoesTurn = PIECES_TYPE.WHITE;
     function isPlayerTurn() {
-        return whoesTurn == PIECES.WHITE;
+        return whoesTurn == PIECES_TYPE.WHITE;
     }
 
     var userInerface = new UI(size);
     var historySteps = new HistoryStep();
 
+    function legalIndex(row, col) {
+        if(row < 0 || col < 0 ||
+            row > size || col > size){
+            return false;
+        }
+
+        return true;
+    }
+    
     /*--------------------------------------------------------------------*/
     //AI
     var diffWayToWin = 0;
@@ -87,25 +184,10 @@ var GoBang = function () {
         }
     }
 
-
     function init_AI() {
 
         _init_waysToWin();
         _init_statisticPossibleToWin();
-    }
-
-    function cleanBoard() {
-        for(var i = 0; i < size; i++){
-            chessBoard[i] = [];
-            for(var j = 0; j < size; j++){
-                chessBoard[i][j] = PIECES.NONE;
-            }
-        }
-    }
-
-    function isEmptyLocation(row, col) {
-
-        return chessBoard[row][col] == PIECES.NONE ;
     }
 
     // public method
@@ -119,18 +201,19 @@ var GoBang = function () {
         userInerface.setCurrentStepinUI( historySteps.getCurrentStep() );
         userInerface.setTotalStepinUI(   historySteps.getTotalStep() );
 
-        whoesTurn    = PIECES.WHITE;
+        whoesTurn = PIECES_TYPE.WHITE;
 
         init_AI();
-        cleanBoard();
 
+        gameOver = false;
     };
 
-
     function clearChessAtPosition(row, col) {
+        if(!legalIndex()){
+            return ;
+        }
 
-        debugger;
-        if (chessBoard[row][col] != PIECES.NONE) {
+        if (! board.isEmptyLocation(row, col)) {
 
             for (var k = 0; k < diffWayToWin; k++) {
                 if (waysToWin[row][col][k]) {
@@ -161,8 +244,7 @@ var GoBang = function () {
                 }
             }
 
-
-            chessBoard[row][col] = PIECES.NONE;
+            board.setPiece(row, col, PIECES_TYPE.NONE);
 
             userInerface.clearChessAtPosition(row, col);
             userInerface.setCurrentStepinUI( historySteps.getCurrentStep() );
@@ -172,10 +254,10 @@ var GoBang = function () {
     }
 
     function swithTurns() {
-        if(whoesTurn == PIECES.WHITE){
-            whoesTurn = PIECES.BLACK;
+        if(whoesTurn == PIECES_TYPE.WHITE){
+            whoesTurn = PIECES_TYPE.BLACK;
         }else{
-            whoesTurn = PIECES.WHITE;
+            whoesTurn = PIECES_TYPE.WHITE;
         }
     }
 
@@ -183,10 +265,10 @@ var GoBang = function () {
 
         if(isPlayerTurn()){
             userInerface.drawChessAtPosition(row, col, "white");
-            chessBoard[row][col] = PIECES.WHITE;
+            board.setPiece(row, col, PIECES_TYPE.WHITE);
         }else{
             userInerface.drawChessAtPosition(row, col, "black");
-            chessBoard[row][col] = PIECES.BLACK;
+            board.setPiece(row, col, PIECES_TYPE.BLACK);
         }
 
         historySteps.saveStepToHistory(row, col, whoesTurn);
@@ -200,7 +282,8 @@ var GoBang = function () {
     }
 
     function _User_step(row, col) {
-        if(isEmptyLocation(row, col)){
+        
+        if(board.isEmptyLocation(row, col)){
             oneStep(row, col);
         }else{
             return
@@ -216,8 +299,7 @@ var GoBang = function () {
 
     function User_Step(e) {
 
-        debugger;
-        if(!isPlayerTurn()){
+        if(!isPlayerTurn() || gameOver){
             return
         }
 
@@ -234,21 +316,33 @@ var GoBang = function () {
 
 
         if(isGameOver()){
-            window.alert("Game Over the User win!");
-            envPointer.start();
+            if(isGameTie()){
+                window.alert("Game Over! Tie!");
+            }else {
+                window.alert("Game Over the User win!");
+            }
+
             return;
         }
 
         AI_Step();
 
         if(isGameOver()){
-            window.alert("Game Over the AI win!");
-            envPointer.start();
+            if(isGameTie()){
+                window.alert("Game Over! Tie!");
+            }else {
+                window.alert("Game Over the AI win!");
+            }
             return;
         }
     }
 
     function _AI_Step(row, col) {
+
+        if(!legalIndex()){
+            return;
+        }
+        
         oneStep(row, col);
 
         for(var k = 0; k < diffWayToWin; k++){
@@ -259,20 +353,18 @@ var GoBang = function () {
         }
     }
 
-    function AI_Step() {
-
-        if(isPlayerTurn()){
-            return
-        }
-
-        historySteps.SyncHistoryToCurrentStep();
+    /**
+     * 局面评估
+     * @returns {{row: number, col: number}}
+     */
+    function judgement() {
 
         //Evaluation for current situation.
         var myScore = [];
         var AIScore = [];
 
         var maxScore= 0;
-        var m = 0, n = 0;//position where get the max score
+        var m = -1, n = -1;//position where get the max score
 
         for (var i = 0; i < size; i++){
             myScore[i] = [];
@@ -286,7 +378,7 @@ var GoBang = function () {
         for(var i = 0; i < size; i++){
             for(var j = 0; j < size; j++){
 
-                if(chessBoard[i][j] == PIECES.NONE){
+                if(board.isEmptyLocation(i, j)){
                     //can drap a chess
                     for(var k = 0; k < diffWayToWin; k++){
                         if(waysToWin[i][j][k] && myWinsPossible[k]){
@@ -319,7 +411,7 @@ var GoBang = function () {
                         m = i;
                         n = j;
                     } else if (AIScore[i][j] == maxScore){
-                        if(myScore[i][j] > myScore[m][n]){
+                        if((m >= 0 && n >= 0 ) && myScore[i][j] > myScore[m][n]){
                             m = i;
                             n = j;
                         }
@@ -330,7 +422,7 @@ var GoBang = function () {
                         m = i;
                         n = j;
                     }else if (myScore[i][j] == maxScore){
-                        if(AIScore[i][j] > AIScore[m][n]){
+                        if((m >= 0 && n >= 0 ) && AIScore[i][j] > AIScore[m][n]){
                             m = i;
                             n = j;
                         }
@@ -339,105 +431,56 @@ var GoBang = function () {
             }
         }
 
-        console.log("The AI pick best score is: " + maxScore + " location(m, n): " + n + ", " + m);
+        console.log("row: " + m + ", col:" + n + " maxScore:" + maxScore);
 
-        _AI_Step(m, n);
-
+        return {"row":m, "col":n, "score": maxScore};
     }
 
+    function AI_Step() {
+
+        debugger;
+        if(isPlayerTurn() || gameOver){
+            return
+        }
+
+        historySteps.SyncHistoryToCurrentStep();
+
+        var step = judgement();
+        //var step = Search.MinMaxSearch();
+
+        _AI_Step(step.row, step.col);
+    }
+
+    /**
+     * 是否是平局
+     */
+    function isGameTie() {
+        for(var k = 0; k < diffWayToWin; k++){
+            if(myWinsPossible[k] != false || AIWinsPossible[k] != false){
+                return false;
+            }
+        }
+
+        return true;
+    }
+    
     function isGameOver() {
+
+        if(isGameTie()){
+            return true;
+        }
 
         for(var k = 0; k < diffWayToWin; k++){
             if(myWins[k] == 5){
                 winner = "User";
+                gameOver = true;
                 return true;
             }
 
             if(AIWins[k] == 5){
                 winner = "AI";
+                gameOver = true;
                 return true;
-            }
-        }
-
-        return false;
-    }
-
-    function isGameOver_Native() {
-
-        for(var i = 0; i < size; i++){
-            for(var j = 0; j < size; j++){
-
-                if(chessBoard[i][j] == PIECES.NONE){
-                    continue;
-                }
-
-                var m = i;
-                var n = j;
-                var continueRepeats = 1;
-
-                // Direction 1
-                for(m = i, n = j; 0 <= m-1 && m-1 < size &&
-                0 <= n+1 && n+1 < size; m--, n++){
-                    if(chessBoard[m][n] == chessBoard[m - 1][n + 1]){
-                        continueRepeats++;
-
-                        if(continueRepeats == 5){
-                            return true; // game over
-                        }
-
-                    }else{
-                        continueRepeats = 1;
-                        break;
-                    }
-                }
-
-                // Direction 2
-                for(m = i, n = j; 0 <= m+1 && m+1 < size; m++){
-                    if(chessBoard[m][n] == chessBoard[m + 1][n]){
-                        continueRepeats++;
-
-                        if(continueRepeats == 5){
-                            return true; // game over
-                        }
-
-                    }else{
-                        continueRepeats = 1;
-                        break;
-                    }
-                }
-
-                // Direction 3
-                for(m = i, n = j; 0 <= m+1 && m+1 < size &&
-                0 <= n+1 && n+1 < size; n++, m++){
-                    if(chessBoard[m][n] == chessBoard[m + 1][n + 1]){
-                        continueRepeats++;
-
-                        if(continueRepeats == 5){
-                            return true; // game over
-                        }
-
-                    }else{
-                        continueRepeats = 1;
-                        break;
-                    }
-                }
-
-                // Direction 4
-                for(m = i, n = j; 0 <= n && n < size; n++){
-                    if(chessBoard[m][n] == chessBoard[m][n + 1]){
-                        continueRepeats++;
-
-                        if(continueRepeats == 5){
-                            return true; // game over
-                        }
-
-                    }else{
-                        continueRepeats = 1;
-                        break;
-                    }
-                }
-
-
             }
         }
 
@@ -464,6 +507,63 @@ var GoBang = function () {
     //     }
     // };
 
+    /*
+    * Search
+    * */
+    var Search = (function () {
+        debugger;
+        var bestVal = 0;
+
+        function generateAllPossibleSteps() {
+
+            var steps = [];
+
+            for(var i = 0; i < size; i++){
+                for(var j = 0; j < size; j++){
+                    if(isEmptyLocation(i, j)){
+                        steps.push({"row": i, "col":j});
+                    }
+                }
+            }
+
+            return steps;
+        }
+
+        var _minSearch = function (depth) {
+
+            if(depth <= 0){
+                return judgement();
+            }else{
+                var steps = generateAllPossibleSteps();
+                for(var i = 0; i < steps.length; i++){
+                    _maxSearch(depth - 1);
+                }
+            }
+        };
+
+        var _maxSearch = function (depth) {
+            if(depth <= 0){
+                return judgement();
+            }else{
+                var steps = generateAllPossibleSteps();
+                for(var i = 0; i < steps.length; i++){
+                    _minSearch(depth - 1);
+                }
+            }
+        };
+
+        this.MinMaxSearch = function () {
+            if(isPlayerTurn()){
+                _maxSearch(3);
+            }else{
+                _minSearch(3);
+            }
+
+        };
+
+    })();
+
+
     var btn     = userInerface.getBtnBackStep();
     btn.onclick = this.backStep;
     // Not Support yet
@@ -474,9 +574,96 @@ var GoBang = function () {
     userInerface.setBtnRestart(this.start);
     userInerface.setBtnSaveTheBoard(historySteps.downloadAsJson);
 
+
+    function isGameOver_Native() {
+
+        for(var i = 0; i < size; i++){
+            for(var j = 0; j < size; j++){
+
+                if(board.isEmptyLocation(i, j)){
+                    continue;
+                }
+
+                var m = i;
+                var n = j;
+                var continueRepeats = 1;
+
+                // TODO wait to refactor
+                // Direction 1
+                for(m = i, n = j; 0 <= m-1 && m-1 < size &&
+                                  0 <= n+1 && n+1 < size; m--, n++){
+
+                    if(board.getPiece(m, n) == board.getPiece(m -1, n + 1)){
+                        continueRepeats++;
+
+                        if(continueRepeats == 5){
+                            return true; // game over
+                        }
+
+                    }else{
+                        continueRepeats = 1;
+                        break;
+                    }
+                }
+
+                // Direction 2
+                for(m = i, n = j; 0 <= m+1 && m+1 < size; m++){
+                    if(board.getPiece(m, n) == board.getPiece(m+1, n)){
+                        continueRepeats++;
+
+                        if(continueRepeats == 5){
+                            return true; // game over
+                        }
+
+                    }else{
+                        continueRepeats = 1;
+                        break;
+                    }
+                }
+
+                // Direction 3
+                for(m = i, n = j; 0 <= m+1 && m+1 < size &&
+                                  0 <= n+1 && n+1 < size; n++, m++){
+                    if(board.getPiece(m, n) == board.getPiece(m+1, n+1)){
+                        continueRepeats++;
+
+                        if(continueRepeats == 5){
+                            return true; // game over
+                        }
+
+                    }else{
+                        continueRepeats = 1;
+                        break;
+                    }
+                }
+
+                // Direction 4
+                for(m = i, n = j; 0 <= n && n < size; n++){
+                    if(board.getPiece(m, n) == board.getPiece(m, n+1)){
+                        continueRepeats++;
+
+                        if(continueRepeats == 5){
+                            return true; // game over
+                        }
+
+                    }else{
+                        continueRepeats = 1;
+                        break;
+                    }
+                }
+
+
+            }
+        }
+
+        return false;
+    }
+
+
 };
 
+
 window.onload = function () {
-    var game = new GoBang();
+    var game = new GoBang(board);
     game.start();
 };
