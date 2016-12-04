@@ -94,8 +94,6 @@ var board = new Board(15);
 
 var GoBang = function (board) {
 
-    var chessBoard = board;
-
     var size = board.getSize();
 
     var winner;  // Value belongs into {PIECE}
@@ -108,28 +106,30 @@ var GoBang = function (board) {
 
     var userInerface = new UI(size);
     var historySteps = new HistoryStep();
-    var AI           = new ArtificialIntelligence();
-
-    function legalIndex(row, col) {
-        if(row < 0 || col < 0 ||
-            row > size || col > size){
-            return false;
-        }
-
-        return true;
-    }
+    var AI           = new ArtificialIntelligence(size, userInerface);
     
 
     // public method
     this.start = function() {
 
+        board.Init();
+
         userInerface = new UI(size);
         historySteps = new HistoryStep();
-        AI           = new ArtificialIntelligence(size);
+        AI           = new ArtificialIntelligence(size, userInerface);
 
         userInerface.reset();
         userInerface.setCurrentStepinUI( historySteps.getCurrentStep() );
         userInerface.setTotalStepinUI(   historySteps.getTotalStep() );
+
+        var btn     = userInerface.getBtnBackStep();
+        btn.onclick = this.backStep;
+        // Not Support yet
+        // btn         = userInerface.getBtnNextStep();
+        // btn.onclick = this.nextStep;
+
+        userInerface.setUserClickFunc(User_Step, this);
+        userInerface.setBtnSaveTheBoard(historySteps.downloadAsJson, historySteps);
 
         whoesTurn = PIECES_TYPE.WHITE;
 
@@ -137,40 +137,10 @@ var GoBang = function (board) {
     };
 
     function clearChessAtPosition(row, col) {
-        if(!legalIndex()){
-            return ;
-        }
 
         if (! board.isEmptyLocation(row, col)) {
 
-            for (var k = 0; k < diffWayToWin; k++) {
-                if (waysToWin[row][col][k]) {
-
-                    /**
-                     * 由于计算机在瞬间就完成下子
-                     * 用户触发回退的按钮时，其实 whoseTurn已经变成用户了
-                     * 但是还是要回退，这里其实是用户强迫电脑撤销下子，所以
-                     * 这里isPlayerTurn() 取反，对应用户情况
-                     * **/
-                    if(!isPlayerTurn()){
-
-                    	if(myWins[k] == 1){
-                            AIWinsPossible[k] = true;
-                        }
-                        if(0 < myWins[k] && myWins[k] < 5){
-                            myWins[k]--;
-                        }
-
-                    }else {
-                    	if(AIWins[k] == 1){
-                            myWinsPossible[k] = true;
-                        }
-                        if(0 < AIWins[k] && AIWins[k] < 5){
-                            AIWins[k]--;
-                        }
-                    }
-                }
-            }
+            AI.backStep(board, row, col);
 
             board.setPiece(row, col, PIECES_TYPE.NONE);
 
@@ -206,7 +176,6 @@ var GoBang = function (board) {
 
         userInerface.showLocation(row, col);
 
-        swithTurns();
     }
 
     function _stepAndUpdate(row, col) {
@@ -218,6 +187,8 @@ var GoBang = function (board) {
         }
 
         AI.updateStatisticArray(row, col, whoesTurn);
+
+        swithTurns();
     }
 
     function User_Step(e) {
@@ -237,6 +208,8 @@ var GoBang = function (board) {
         _stepAndUpdate(i, j);
 
         if(AI.isGameOver()){
+
+            gameOver = true;
             if(AI.isGameTie()){
                 window.alert("Game Over! Tie!");
             }else {
@@ -249,6 +222,7 @@ var GoBang = function (board) {
         AI_Step();
 
         if(AI.isGameOver()){
+            gameOver = true;
             if(AI.isGameTie()){
                 window.alert("Game Over! Tie!");
             }else {
@@ -266,8 +240,8 @@ var GoBang = function (board) {
 
         historySteps.SyncHistoryToCurrentStep();
 
-        var step = AI.takeStep();
-        //var step = Search.MinMaxSearch();
+        var step = AI.thinkWithOneDepth();
+        //var step = AI.takeStep(whoesTurn, board);
 
         _stepAndUpdate(step.row, step.col);
     }
@@ -283,6 +257,7 @@ var GoBang = function (board) {
         swithTurns();
     };
 
+    // Not support now
     // this.nextStep = function () {
     //
     //     var step = historySteps.stepNext();
@@ -293,74 +268,6 @@ var GoBang = function (board) {
     //         _AI_Step(step.row, step.col);
     //     }
     // };
-
-    /*
-    * Search
-    * */
-    var Search = (function () {
-        debugger;
-        var bestVal = 0;
-
-        function generateAllPossibleSteps() {
-
-            var steps = [];
-
-            for(var i = 0; i < size; i++){
-                for(var j = 0; j < size; j++){
-                    if(isEmptyLocation(i, j)){
-                        steps.push({"row": i, "col":j});
-                    }
-                }
-            }
-
-            return steps;
-        }
-
-        var _minSearch = function (depth) {
-
-            if(depth <= 0){
-                return judgement();
-            }else{
-                var steps = generateAllPossibleSteps();
-                for(var i = 0; i < steps.length; i++){
-                    _maxSearch(depth - 1);
-                }
-            }
-        };
-
-        var _maxSearch = function (depth) {
-            if(depth <= 0){
-                return judgement();
-            }else{
-                var steps = generateAllPossibleSteps();
-                for(var i = 0; i < steps.length; i++){
-                    _minSearch(depth - 1);
-                }
-            }
-        };
-
-        this.MinMaxSearch = function () {
-            if(isPlayerTurn()){
-                _maxSearch(3);
-            }else{
-                _minSearch(3);
-            }
-
-        };
-
-    })();
-
-
-    var btn     = userInerface.getBtnBackStep();
-    btn.onclick = this.backStep;
-    // Not Support yet
-    // btn         = userInerface.getBtnNextStep();
-    // btn.onclick = this.nextStep;
-
-    userInerface.setUserClickFunc(User_Step);
-    userInerface.setBtnRestart(this.start);
-    userInerface.setBtnSaveTheBoard(historySteps.downloadAsJson);
-
 
     function isGameOver_Native() {
 
@@ -446,7 +353,7 @@ var GoBang = function (board) {
         return false;
     }
 
-
+    userInerface.setBtnRestart(this.start, this);
 };
 
 

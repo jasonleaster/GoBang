@@ -9,12 +9,13 @@ var HistoryStep = function() {
     var currentStep = 0;
     var totalStep   = 0;
     var steps       = [];
+    var envPointer  = this;
 
     this.SyncHistoryToCurrentStep = function () {
         if(totalStep != currentStep){
             totalStep = currentStep;
 
-            for(;steps.length > totalStep;){
+            for(; steps.length > totalStep;){
                 step = steps.pop();
             }
         }

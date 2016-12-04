@@ -53,12 +53,18 @@ var UI = function (boardSize) {
         return btnNextStep;
     };
 
-    this.setBtnSaveTheBoard = function (func) {
-        btnSaveTheBoard.onclick = func;
+    this.setBtnSaveTheBoard = function (func, obj) {
+        return btnSaveTheBoard.onclick = function (e) {
+            e.preventDefault();
+            func.call(obj);
+        };
     };
 
-    this.setBtnRestart = function (func) {
-        btnRestart.onclick = func;
+    this.setBtnRestart = function (func, obj) {
+        btnRestart.onclick = function(e){
+            e.preventDefault();
+            func.call(obj);
+        }
     };
 
 
@@ -158,6 +164,10 @@ var UI = function (boardSize) {
 
         canvasContext = boardCanvasCtx;
 
+        canvasContext.clearRect( 0, 0, BoardInPixel.width, BoardInPixel.height);
+
+        canvasContext.beginPath();
+
         m          = BoardInPixel.margin; // the margin of the GoBang board in pixel.
         chessWidth = PieceInPixel;
 
@@ -173,5 +183,16 @@ var UI = function (boardSize) {
         canvasContext.moveTo(m,                      m + col * chessWidth);
         canvasContext.lineTo(BoardInPixel.width - m, m + col * chessWidth);
         canvasContext.stroke();
+    };
+
+    this.showGrade = function (row, col, grade) {
+        canvasContext = boardCanvasCtx;
+
+        m          = BoardInPixel.margin; // the margin of the GoBang board in pixel.
+        chessWidth = PieceInPixel;
+
+        canvasContext.font = "20px Georgia";
+        canvasContext.beginPath();
+        canvasContext.fillText("" + grade, Math.floor(m*0.6) + row * chessWidth, Math.floor(m*1.5) + col*chessWidth);
     }
 };

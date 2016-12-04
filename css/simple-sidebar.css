@@ -86,13 +86,14 @@
 .sidebar-text{
     position: relative;
     width: 250px;
+    padding-right: 10px;
     margin: 0;
     padding-top: 20px;
     color: #999999;
 }
 
 .sidebar-text p{
-    padding-left: 10px;
+    padding-left : 10px;
 }
 
 
