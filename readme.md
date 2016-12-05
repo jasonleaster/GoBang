@@ -34,3 +34,4 @@ Current Version: 3.0
 ### Helpful documents
 
 https://www.cs.cornell.edu/courses/cs312/2002sp/lectures/rec21.htm
+https://en.wikipedia.org/wiki/Minimax   
