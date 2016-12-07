@@ -15,6 +15,8 @@ You can restart the game with a clean borad with the help of the button "restart
 
 Demo:
 
+[On YouTube](https://www.youtube.com/watch?v=6JA6wZletX4)
+
 ![images](./img/demo.gif)
 
 <br>
