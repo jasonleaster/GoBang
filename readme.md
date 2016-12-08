@@ -21,7 +21,7 @@ Demo:
 
 <br>
 
-Current Version: 3.0
+Current Version: 3.1
 
 ### Version
 
@@ -40,3 +40,7 @@ https://www.cs.cornell.edu/courses/cs312/2002sp/lectures/rec21.htm
 https://en.wikipedia.org/wiki/Minimax  
 
 https://www.zhihu.com/question/34816738  
+
+https://www.zhihu.com/question/24053236?rf=27577220  
+
+https://project.dke.maastrichtuniversity.nl/games/files/phd/SearchingForSolutions.pdf  
