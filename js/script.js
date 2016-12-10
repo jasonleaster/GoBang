@@ -9,8 +9,6 @@ var PIECES_TYPE = { NONE  : 0, WHITE : 1, BLACK : 2};
 function Board(size) {
     var _size  = size;
     var _chessBoard = [];
-    var width  = _size;
-    var height = _size;
 
     /*
     * Private Methods
@@ -30,24 +28,24 @@ function Board(size) {
     }
 
     /**
+     * Public Methods
+     */
+
+    /**
      * Check the validation of index.
      *
      * @param row
      * @param col
      * @returns {boolean}
      */
-    function legalIndex(row, col) {
+    this.legalIndex = function (row, col) {
         if(row < 0 || col < 0 ||
             row > size || col > size){
             return false;
         }
 
         return true;
-    }
-
-    /**
-     * Private Methods
-     */
+    };
 
     /**
      * Determine whether there have a piece.
@@ -58,7 +56,7 @@ function Board(size) {
      */
     this.isEmptyLocation = function (row, col) {
 
-        if(!legalIndex()){
+        if(! this.legalIndex(row, col)){
             return;
         }
 
@@ -66,14 +64,14 @@ function Board(size) {
     };
 
     this.setPiece = function (row, col, piece) {
-        if(!legalIndex(row, col)){
+        if(! this.legalIndex(row, col)){
             return;
         }
         _chessBoard[row][col] = piece;
     };
 
     this.getPiece = function (row, col) {
-        if(!legalIndex(row, col)){
+        if(! this.legalIndex(row, col)){
             return;
         }
         return _chessBoard[row][col];
@@ -140,7 +138,7 @@ var GoBang = function (board) {
 
         if (! board.isEmptyLocation(row, col)) {
 
-            AI.backStep(board, row, col);
+            AI.backStep(board, row, col, whoesTurn);
 
             board.setPiece(row, col, PIECES_TYPE.NONE);
 

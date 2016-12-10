@@ -1,6 +1,27 @@
 /**
- * Created by Administrator on 2016/12/2.
+ * Author   : EOF
+ * File     : ArtificialIntelligence.js
+ * Date     : 2016/12/2.
  */
+
+var ConnectedType = {
+    None       :0,
+    SleepOne   :1, // --$*?--, --?*$--
+    SleepTwo   :2, // --$**??--, --???**--,--?*?*?--,--*???*--
+    SleepThree :3, // --***??--, --??***
+    SleepFour  :4, // --
+    WakedOne   :5, // --?*???--, --??*??--,--???*?--
+    WakedTwo   :6, // --?**? --, --??**?--
+    WakedThree :7, // --?***?--,
+    WakedFour  :8  // --?****?--
+};
+
+var Direction = {
+    Slash     : {"row": -1, "col": +1}, // "/"
+    BackSlash : {"row": +1, "col": +1}, // "\"
+    Horizon   : {"row":  0, "col": +1}, // "-"
+    Vertical  : {"row": +1, "col":  0}  // "|"
+};
 
 function ArtificialIntelligence(boardSize, UI) {
 
@@ -10,25 +31,164 @@ function ArtificialIntelligence(boardSize, UI) {
     var size = boardSize;
     var envPointer = this;
 
-    var whoesTurn = PIECES_TYPE.BLACK;
+    var whoseTurn = PIECES_TYPE.BLACK; // recommend to change "piece" into "stone"
+
     function isWhiteTurn() {
-        return whoesTurn == PIECES_TYPE.WHITE;
+        return whoseTurn == PIECES_TYPE.WHITE;
     }
 
     function isBlackTurn() {
-        return whoesTurn == PIECES_TYPE.BLACK;
+        return whoseTurn == PIECES_TYPE.BLACK;
     }
 
     function swithTurns() {
-        if(whoesTurn == PIECES_TYPE.WHITE){
-            whoesTurn = PIECES_TYPE.BLACK;
+        if(whoseTurn == PIECES_TYPE.WHITE){
+            whoseTurn = PIECES_TYPE.BLACK;
         }else{
-            whoesTurn = PIECES_TYPE.WHITE;
+            whoseTurn = PIECES_TYPE.WHITE;
         }
     }
 
     function getWhoseTurn() {
-        return whoesTurn;
+        return whoseTurn;
+    }
+
+    function isWakedOne(line, pieceType) {
+        if(line.length == 5 && (line[1] == pieceType || line[2] == pieceType || line[3] == pieceType)){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    function isSleepOne(line, pieceType) {
+        return !isWakedOne(line, pieceType);
+    }
+
+    function isWakedTwo(line, pieceType) {
+        if( (line.length == 5) && ((line[1] == pieceType && line[2] == pieceType)||
+                                   (line[2] == pieceType && line[3] == pieceType)||
+                                   (line[1] == pieceType || line[3] == pieceType))
+        ){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    function isSleepTwo(line, pieceType) {
+        return !isWakedTwo(line, pieceType);
+    }
+
+    function isWakedThree(line, pieceType) {
+        if( (line.length == 5) && (line[1] == pieceType && line[2] == pieceType &&line[3] == pieceType) ){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    function isSleepThree(line, pieceType) {
+        return !isWakedThree(line, pieceType);
+    }
+
+    function isWakedFour(line, pieceType) {
+
+        if(line.length != 6){
+            return false;
+        }
+
+        var condition = (
+        line[0] == PIECES_TYPE.NONE && line[5] == PIECES_TYPE.NONE &&
+        line[1] == pieceType        && line[2] == pieceType        &&
+        line[3] == pieceType        && line[4] == pieceType);
+
+        if(condition){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    function isSleepFour(line, pieceType) {
+        return !isWakedFour(line, pieceType);
+    }
+
+    function getPiecesOnALine(startPoint, direction, count) {
+        var pieces = [];
+        var row = startPoint.row;
+        var col = startPoint.col;
+
+        for(var i = 0; i < count; i++){
+            if( board.legalIndex(row, col) ){
+                pieces.push( board.getPiece(row, col) );
+            }else{
+                break
+            }
+            row += direction.row;
+            col += direction.col;
+        }
+
+        return pieces;
+    }
+
+
+    /**
+     *
+     * @param wayToWin   某种赢法
+     * @param pieceType  棋子类型
+     * @param count      对应已经满足该赢法条件的棋子数量
+     */
+    function checkConnectedType(wayToWin, pieceType, count) {
+
+        if(count == 0){
+            return ConnectedType.None;
+        }
+
+        var startPoint = wayToWin.startPoint;
+        var direction  = wayToWin.direction;
+        var line;
+
+        if(count < 4){
+            line = getPiecesOnALine(startPoint, direction, 5);
+        }else{
+            line = getPiecesOnALine(startPoint, direction, 6);
+        }
+
+
+        if(count == 4 && isWakedFour(line, pieceType)){
+            return ConnectedType.WakedFour;
+        }
+
+        if(count == 4 && isSleepFour(line, pieceType)){
+            return ConnectedType.SleepFour;
+        }
+
+        if(count == 3 && isWakedThree(line, pieceType)){
+            return ConnectedType.WakedThree;
+        }
+
+        if(count == 3 && isSleepThree(line, pieceType)){
+            return ConnectedType.SleepThree;
+        }
+
+        if(count == 2 && isWakedTwo(line, pieceType)){
+            return ConnectedType.WakedTwo;
+        }
+
+        if(count == 2 && isSleepTwo(line, pieceType)){
+            return ConnectedType.SleepTwo;
+        }
+
+        if(count == 1 && isWakedOne(line, pieceType)){
+            return ConnectedType.WakedOne;
+        }
+
+        if(count == 1 && isSleepOne(line, pieceType)){
+            return ConnectedType.SleepOne;
+        }
+
+        window.alert("Error! in checkConnectedType");
     }
 
     var diffWayToWin = 0;
@@ -36,16 +196,15 @@ function ArtificialIntelligence(boardSize, UI) {
 
     function _init_waysToWin() {
 
-        diffWayToWin = 0;
-
-        for(var i = 0; i < size; i++){
-            waysToWin[i] = [];
-            for(var j = 0; j < size; j++){
-                waysToWin[i][j] = [];
-            }
+        function wayToWinBuilder(startPoint, direction, type) {
+            return {
+                "startPoint"    : startPoint, //{"row":row, "col":col}
+                "direction"     : direction,
+                "connectedType" : type
+            };
         }
 
-        function setWayToWin(i, m, j, n) {
+        function setWayToWin(i, m, j, n, direction) {
 
             /*
              * m, n belongs to {-1, 0, +1}
@@ -63,17 +222,27 @@ function ArtificialIntelligence(boardSize, UI) {
                 x = i + m*k;
                 y = j + n*k;
 
-                waysToWin[x][y][diffWayToWin] = true;
+                waysToWin[x][y][diffWayToWin] = wayToWinBuilder({"row":i, "col":j}, direction, ConnectedType.None);
             }
+
             diffWayToWin++;
+        }
+
+        diffWayToWin = 0;
+
+        for(var i = 0; i < size; i++){
+            waysToWin[i] = [];
+            for(var j = 0; j < size; j++){
+                waysToWin[i][j] = [];
+            }
         }
 
         for(var i = 0; i < size; i++) {
             for (var j = 0; j < size; j++) {
-                setWayToWin(i, -1, j, +1);
-                setWayToWin(i,  0, j, +1);
-                setWayToWin(i, +1, j, +1);
-                setWayToWin(i, +1, j,  0);
+                setWayToWin(i, Direction.Slash.row,     j, Direction.Slash.col,     Direction.Slash);
+                setWayToWin(i, Direction.Horizon.row,   j, Direction.Horizon.col,   Direction.Horizon);
+                setWayToWin(i, Direction.BackSlash.row, j, Direction.BackSlash.col, Direction.BackSlash);
+                setWayToWin(i, Direction.Vertical.row,  j, Direction.Vertical.col,  Direction.Vertical);
             }
         }
 
@@ -125,27 +294,58 @@ function ArtificialIntelligence(boardSize, UI) {
                 if(board.isEmptyLocation(i, j)){
                     //can drap a chess
                     for(var k = 0; k < diffWayToWin; k++){
-                        if(waysToWin[i][j][k] && whiteWinsPossible[k]){
+
+                        wayToWin = waysToWin[i][j][k];
+
+                        if(wayToWin && whiteWinsPossible[k]){
+                            connectedType = checkConnectedType(wayToWin, PIECES_TYPE.WHITE, whiteWins[k]);
+
                             if(whiteWins[k] == 1){
-                                whiteScore[i][j] += 1;
+                                if(connectedType == ConnectedType.SleepOne){
+                                    whiteScore[i][j] += 15;
+                                }else{
+                                    whiteScore[i][j] += 50;
+                                }
                             }else if(whiteWins[k] == 2){
-                                whiteScore[i][j] += 9;
+                                if(connectedType == ConnectedType.SleepTwo){
+                                    whiteScore[i][j] += 230;
+                                }else{
+                                    whiteScore[i][j] += 300;
+                                }
+
                             }else if(whiteWins[k] == 3){
-                                whiteScore[i][j] += 73;
+                                if(connectedType == ConnectedType.SleepThree){
+                                    whiteScore[i][j] += 600;
+                                }else{
+                                    whiteScore[i][j] += 1200;
+                                }
                             }else if(whiteWins[k] == 4){
-                                whiteScore[i][j] += 1000;
+                                whiteScore[i][j] += 2100;
                             }
                         }
 
-                        if(waysToWin[i][j][k] && blackWinsPossible[k]){
+                        if(wayToWin && blackWinsPossible[k]){
+                            connectedType = checkConnectedType(wayToWin, PIECES_TYPE.BLACK, blackWins[k]);
                             if(blackWins[k] == 1){
-                                blackScore[i][j] += 1;
+                                if(connectedType == ConnectedType.SleepOne){
+                                    blackScore[i][j] += 10;
+                                }else{
+                                    blackScore[i][j] += 40;
+                                }
                             }else if(blackWins[k] == 2){
-                                blackScore[i][j] += 10;
+                                if(connectedType == ConnectedType.SleepTwo){
+                                    blackScore[i][j] += 80;
+                                }else{
+                                    blackScore[i][j] += 200;
+                                }
                             }else if(blackWins[k] == 3){
-                                blackScore[i][j] += 60;
+                                if(connectedType == ConnectedType.SleepThree){
+                                    blackScore[i][j] += 240;
+                                }else{
+                                    blackScore[i][j] += 480;
+                                }
                             }else if(blackWins[k] == 4){
-                                blackScore[i][j] += 2000;
+                                blackScore[i][j] += 3000;
                             }
                         }
                     }
@@ -172,8 +372,6 @@ function ArtificialIntelligence(boardSize, UI) {
                         }
                     }
                 }
-
-                userInterface.showGrade(i, j, maxScore);
             }
         }
 
@@ -205,6 +403,9 @@ function ArtificialIntelligence(boardSize, UI) {
             wins = blackWins;
         }
 
+        var x;
+        var y;
+
         for(var i = 0; i < size; i++){
             for(var j = 0; j < size; j++){
 
@@ -224,11 +425,14 @@ function ArtificialIntelligence(boardSize, UI) {
 
                     if(score[i][j] > maxScore){
                         maxScore = score[i][j];
+                        x = i;
+                        y = j;
                     }
                 }
             }
         }
 
+        userInterface.showGrade(x, y, maxScore);
         console.log("Judgement maxScore:" + maxScore);
 
         return maxScore;
@@ -251,7 +455,7 @@ function ArtificialIntelligence(boardSize, UI) {
             board.setPiece(row, col, PIECES_TYPE.BLACK);
         }
 
-        envPointer.updateStatisticArray(row, col, whoesTurn);
+        envPointer.updateStatisticArray(row, col, whoseTurn);
 
         swithTurns();
 
@@ -259,17 +463,17 @@ function ArtificialIntelligence(boardSize, UI) {
     }
 
     var undoTimes = 0;
-    function undoStep(board, row, col) {
+    function undoStep(board, row, col, whoseTurn) {
         undoTimes++;
 
-        console.info("whoseTurn: " + whoesTurn);
+        console.info("whoseTurn: " + whoseTurn);
 
         if (! board.isEmptyLocation(row, col)) {
 
             for (var k = 0; k < diffWayToWin; k++) {
                 if (waysToWin[row][col][k]) {
 
-                    if(isWhiteTurn()){
+                    if(whoseTurn == PIECES_TYPE.WHITE){
 
                         if(whiteWins[k] == 1){
                             blackWinsPossible[k] = true;
@@ -299,8 +503,13 @@ function ArtificialIntelligence(boardSize, UI) {
         return board;
     }
 
-    this.backStep = function (board, row, col) {
-        undoStep(board, row, col);
+    this.backStep = function (board, row, col, whoseTurn) {
+        if(whoseTurn == PIECES_TYPE.WHITE){
+            whoseTurn = PIECES_TYPE.BLACK;
+        }else{
+            whoseTurn = PIECES_TYPE.WHITE;
+        }
+        undoStep(board, row, col, whoseTurn);
     };
 
     var updateTimes = 0;
@@ -310,13 +519,10 @@ function ArtificialIntelligence(boardSize, UI) {
         if(whoseTurn == PIECES_TYPE.WHITE){
 
             for(var k = 0; k < diffWayToWin; k++){
-                if(waysToWin[row][col][k] ){
+                wayToWin = waysToWin[row][col][k];
+                if( wayToWin ){
                     whiteWins[k]++;
                     blackWinsPossible[k] = false;
-                }
-
-                if(blackWins[k] == 5){
-                    debugger;
                 }
             }
 
@@ -326,14 +532,6 @@ function ArtificialIntelligence(boardSize, UI) {
                 if(waysToWin[row][col][k]){
                     blackWins[k]++;
                     whiteWinsPossible[k] = false;
-                }
-
-                if(blackWins[k] == 4){
-                    debugger;
-                }
-
-                if(blackWins[k] == 5){
-                    debugger;
                 }
             }
         }
@@ -399,89 +597,73 @@ function ArtificialIntelligence(boardSize, UI) {
     var MAX_DEPTH = 3;
 
     /**
-     * Min Search
+     * Min-Max Search
      * @param board
      * @param depth
-     * @returns {number}
-     * @private
+     * @param maximizingPlayer
+     * @returns {*}
+     * @constructor
      */
-    var _minSearch = function (board, depth) {
-        var retValue;
-        var bestValue = +10000;
+    var MinMaxSearch = function (board, depth, maximizingPlayer) {
+        var bestValue;
 
         if(depth <= 0){
             bestValue = judgement(board);
             return bestValue;
-        }else{
-            var steps = generateAllPossibleSteps(board);
-            for(var i = 0; i < steps.length; i++){
-
-                board = oneStep(board, steps[i].row, steps[i].col);
-                retValue = _maxSearch(board, depth - 1);
-
-                if(bestValue > retValue){
-                    bestValue = retValue;
-                    if(depth == MAX_DEPTH){
-                        bestStep = steps[i];
-                    }
-                }
-
-                board = undoStep(board, steps[i].row, steps[i].col);
-            }
-
         }
 
-        return bestValue;
-    };
+        if(maximizingPlayer){
+            bestValue = -100000;
 
-    /**
-     *
-     * @param board
-     * @param depth
-     * @returns {number}
-     * @private
-     */
-    var _maxSearch = function (board, depth) {
-        var retValue;
-        var bestValue = -10000;
-
-        if(depth <= 0){
-            bestValue = judgement(board);
-            return bestValue;
-        }else{
             var steps = generateAllPossibleSteps(board);
             for(var i = 0; i < steps.length; i++){
 
                 board = oneStep(board, steps[i].row, steps[i].col);
-                retValue = _minSearch(board, depth - 1);
+                value = MinMaxSearch(board, depth - 1, false);
+                board = undoStep(board, steps[i].row, steps[i].col);
 
-                if(bestValue < retValue){
-                    bestValue = retValue;
+                if(bestValue < value){
+                    bestValue = value;
                     if(depth == MAX_DEPTH){
                         bestStep = steps[i];
                     }
                 }
+            }
 
+        } else{
+            bestValue = +100000;
+            var steps = generateAllPossibleSteps(board);
+            for(var i = 0; i < steps.length; i++){
+
+                board = oneStep(board, steps[i].row, steps[i].col);
+                value = MinMaxSearch(board, depth - 1, true);
                 board = undoStep(board, steps[i].row, steps[i].col);
+
+                if(bestValue > value){
+                    bestValue = value;
+                    if(depth == MAX_DEPTH){
+                        bestStep = steps[i];
+                    }
+                }
             }
         }
 
         return bestValue;
     };
 
-    function MinMaxSearch (player, board) {
-
-        var value;
-
-        // 后手一开始必须要防守，所以一开始先调用minSearch
-        if(player == PIECES_TYPE.BLACK){
-            value = _minSearch(board, MAX_DEPTH);
-        }else{
-            value = _maxSearch(board, MAX_DEPTH);
-        }
-
-        return value;
-    }
+    // function MinMaxSearch (player, board) {
+    //
+    //     var value;
+    //
+    //     // 后手一开始必须要防守，所以一开始先调用minSearch
+    //     if(player == PIECES_TYPE.BLACK){
+    //         value = _minSearch(board, MAX_DEPTH);
+    //     }else{
+    //         value = _maxSearch(board, MAX_DEPTH);
+    //     }
+    //
+    //     return value;
+    // }
 
     function AlphaBetaSearch(board, depth, alpha, beta, maximizingPlayer) {
 
@@ -548,10 +730,12 @@ function ArtificialIntelligence(boardSize, UI) {
 
     this.takeStep = function(player, board){
 
-        MinMaxSearch(player, board);
+        whoseTurn = PIECES_TYPE.BLACK;
+
+        MinMaxSearch(board, MAX_DEPTH, false);
 
         // debugger;
-        // if(whoesTurn == PIECES_TYPE.BLACK){
+        // if(whoseTurn == PIECES_TYPE.BLACK){
         //     AlphaBetaSearch(board, MAX_DEPTH, -100000, +100000, false);
         // }else{
         //     AlphaBetaSearch(board, MAX_DEPTH, -100000, +100000, true);
