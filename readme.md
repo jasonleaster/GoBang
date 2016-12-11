@@ -21,10 +21,12 @@ Demo:
 
 <br>
 
-Current Version: 3.1
+Current Version: 3.6
 
 ### Version
 
+3.6 : Attibutes  ==> Recover from history steps json files.  
+3.5 : Fix the bug on the attributes "Back Step";
 3.1 : Attributes ==> Show where is the last dropped peice  
 3.0 : With a better friendly user interface.  
 2.0 : Support to download history steps as json files.  
@@ -44,3 +46,5 @@ https://www.zhihu.com/question/34816738
 https://www.zhihu.com/question/24053236?rf=27577220  
 
 https://project.dke.maastrichtuniversity.nl/games/files/phd/SearchingForSolutions.pdf  
+
+[Whipping File Inputs Into Shape with Bootstrap 3](https://www.abeautifulsite.net/whipping-file-inputs-into-shape-with-bootstrap-3)
