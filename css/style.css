@@ -3,7 +3,7 @@ canvas{
     margin : 50px auto;
     box-shadow: -2px -2px 2px #EFEFEF, 5px 5px 5px #B9B9B9;
     position: absolute;
-    top : 0px;
+    top : 30%;
     left: 0px;
     bottom: 0px;
     right: 0px;
@@ -11,7 +11,7 @@ canvas{
 
 .buttonGroups{
     list-style: none;
-    width: 180px;
+    width: 220px;
 
     position: absolute;
     top : 200px;
@@ -23,3 +23,94 @@ canvas{
 .buttonGroups li{
     padding-bottom: 10px;
 }
+
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+}
+
+
+
+.infoxWrapper{
+    display: block;
+    position: absolute;
+    top : 150px;
+    left: 0px;
+    bottom: 0px;
+    right: 0px;
+    height: auto;
+}
+
+.infobox {
+    width: 25%;
+    height: 100px;
+    display: block;
+    margin: 0 3%;
+    position: relative;
+
+    padding: 0px 1px;
+    border: 1px solid rgba(200,200,200,0.3);
+    background-color: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    font-size: 12px;
+    text-align: center;
+}
+
+.player-black{
+    background: black;
+}
+
+.player-white{
+    background: white;
+}
+
+.infobox .infobox-title {
+    margin: 0 10px;
+    line-height: 40px;
+    font-weight: bold;
+    font-size: 20px;
+    height: 40px;
+    overflow: hidden;
+}
+
+.infobox .infobox-title::after{
+    content: ' ';
+    float: right;
+    margin-top: 10px;
+    margin-right: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    box-shadow: 1px 1px 1px 1px rgba(127, 127, 127, 0.3);
+    background: inherit;
+}
+
+.infobox .infoItemBox{
+    width: 25%;
+    display: inline-block;
+
+    padding: 0px 1px;
+    margin: 0 3%;
+    border: 1px solid rgba(200,200,200,0.3);
+    background-color: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    font-size: 12px;
+    text-align: center;
+}
+
