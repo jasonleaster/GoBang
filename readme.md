@@ -21,12 +21,13 @@ Demo:
 
 <br>
 
-Current Version: 3.6
+Current Version: 3.7
 
 ### Version
 
+3.7 : Fix Bug in Board.legalIndex(row, col).  
 3.6 : Attibutes  ==> Recover from history steps json files.  
-3.5 : Fix the bug on the attributes "Back Step";
+3.5 : Fix the bug on the attributes "Back Step";  
 3.1 : Attributes ==> Show where is the last dropped peice  
 3.0 : With a better friendly user interface.  
 2.0 : Support to download history steps as json files.  

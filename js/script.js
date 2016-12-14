@@ -40,7 +40,7 @@ function Board(size) {
      */
     this.legalIndex = function (row, col) {
         if(row < 0 || col < 0 ||
-            row > size || col > size){
+            row >= size || col >= size){
             return false;
         }
 
@@ -97,9 +97,9 @@ var GoBang = function (board) {
     var winner;  // Value belongs into {PIECE}
     var gameOver = false;
 
-    var whoesTurn = PIECES_TYPE.WHITE;
+    var whoseTurn = PIECES_TYPE.WHITE;
     function isPlayerTurn() {
-        return whoesTurn == PIECES_TYPE.WHITE;
+        return whoseTurn == PIECES_TYPE.WHITE;
     }
 
     var userInerface = new UI(size);
@@ -113,7 +113,7 @@ var GoBang = function (board) {
         board.Init();
 
         userInerface = new UI(size);
-        historySteps = new HistoryStep();
+        historySteps = new HistoryStep(this);
         AI           = new ArtificialIntelligence(size, userInerface);
 
         userInerface.reset();
@@ -128,17 +128,18 @@ var GoBang = function (board) {
 
         userInerface.setUserClickFunc(User_Step, this);
         userInerface.setBtnSaveTheBoard(historySteps.downloadAsJson, historySteps);
+        userInerface.setBtnUploadHistorySteps(historySteps.uploadHistorySteps, historySteps);
 
-        whoesTurn = PIECES_TYPE.WHITE;
+        whoseTurn = PIECES_TYPE.WHITE;
 
         gameOver = false;
     };
 
-    function clearChessAtPosition(row, col) {
+    function clearChessAtPosition(row, col, whoseTurn) {
 
         if (! board.isEmptyLocation(row, col)) {
 
-            AI.backStep(board, row, col, whoesTurn);
+            AI.backStep(board, row, col, whoseTurn);
 
             board.setPiece(row, col, PIECES_TYPE.NONE);
 
@@ -150,10 +151,10 @@ var GoBang = function (board) {
     }
 
     function swithTurns() {
-        if(whoesTurn == PIECES_TYPE.WHITE){
-            whoesTurn = PIECES_TYPE.BLACK;
+        if(whoseTurn == PIECES_TYPE.WHITE){
+            whoseTurn = PIECES_TYPE.BLACK;
         }else{
-            whoesTurn = PIECES_TYPE.WHITE;
+            whoseTurn = PIECES_TYPE.WHITE;
         }
     }
 
@@ -167,7 +168,7 @@ var GoBang = function (board) {
             board.setPiece(row, col, PIECES_TYPE.BLACK);
         }
 
-        historySteps.saveStepToHistory(row, col, whoesTurn);
+        historySteps.saveStepToHistory(row, col, whoseTurn);
 
         userInerface.setCurrentStepinUI( historySteps.getCurrentStep() );
         userInerface.setTotalStepinUI(   historySteps.getTotalStep() );
@@ -184,7 +185,7 @@ var GoBang = function (board) {
             return
         }
 
-        AI.updateStatisticArray(row, col, whoesTurn);
+        AI.updateStatisticArray(row, col, whoseTurn);
 
         swithTurns();
     }
@@ -239,7 +240,11 @@ var GoBang = function (board) {
         historySteps.SyncHistoryToCurrentStep();
 
         var step = AI.thinkWithOneDepth();
-        //var step = AI.takeStep(whoesTurn, board);
+
+        /*
+        * developing
+        * */
+        //var step = AI.takeStep(whoseTurn, board);
 
         _stepAndUpdate(step.row, step.col);
     }
@@ -248,11 +253,15 @@ var GoBang = function (board) {
 
     this.backStep = function () {
 
+        if(gameOver){
+            gameOver = false;
+        }
+
         var step = historySteps.stepBack();
 
-        clearChessAtPosition(step.row, step.col);
+        clearChessAtPosition(step.row, step.col, step.player);
 
-        swithTurns();
+        whoseTurn = step.player;
     };
 
     // Not support now
@@ -266,6 +275,27 @@ var GoBang = function (board) {
     //         _AI_Step(step.row, step.col);
     //     }
     // };
+
+    this.recoverFromHistorySteps = function () {
+
+        board.Init();
+
+        userInerface.reset();
+        userInerface.setCurrentStepinUI( historySteps.getCurrentStep() );
+        userInerface.setTotalStepinUI(   historySteps.getTotalStep() );
+
+
+        var steps = historySteps.getSteps();
+
+        whoseTurn = steps[0].player;
+
+        for(var i = 0; i < steps.length; i++){
+            step = steps[i];
+
+            _stepAndUpdate(step.row, step.col);
+        }
+
+    };
 
     function isGameOver_Native() {
 
