@@ -4,12 +4,14 @@
  * Date     : 2016/11/23.
  */
 
-var HistoryStep = function() {
+var HistoryStep = function(goBang) {
+    var game = goBang;
 
     var currentStep = 0;
     var totalStep   = 0;
     var steps       = [];
-    var envPointer  = this;
+
+    var isRecoverFromFiles = false;
 
     this.SyncHistoryToCurrentStep = function () {
         if(totalStep != currentStep){
@@ -29,7 +31,26 @@ var HistoryStep = function() {
         return totalStep;
     };
 
+    /**
+     * Return a copy but not a reference of history steps.
+     *
+     * @returns {Array}
+     */
+    this.getSteps = function () {
+        var stepsCopy = [];
+
+        for(var i = 0; i < steps.length; i++){
+            stepsCopy.push(steps[i]);
+        }
+
+        return stepsCopy;
+    };
+
     this.saveStepToHistory = function (i, j, player) {
+
+        if(isRecoverFromFiles){
+            return;
+        }
 
         steps.push(
             {
@@ -51,6 +72,27 @@ var HistoryStep = function() {
         dlAnchorElem.setAttribute("href",     dataStr     );
         dlAnchorElem.setAttribute("download", "HistorySteps.json");
         dlAnchorElem.click();
+    };
+
+    this.uploadHistorySteps = function (event) {
+
+        var reader = new FileReader();
+
+        reader.onload = function (event){
+
+            isRecoverFromFiles = true;
+
+            steps = JSON.parse(event.target.result);
+
+            totalStep = steps.length;
+            currentStep = totalStep;
+
+            game.recoverFromHistorySteps();
+
+            isRecoverFromFiles = false;
+        };
+
+        reader.readAsText(event.target.files[0]);
     };
 
     this.stepBack = function () {
