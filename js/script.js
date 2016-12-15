@@ -244,7 +244,7 @@ var GoBang = function (board) {
         /*
         * developing
         * */
-        //var step = AI.takeStep(whoseTurn, board);
+        // var step = AI.takeStep(whoseTurn, board);
 
         _stepAndUpdate(step.row, step.col);
     }

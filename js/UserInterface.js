@@ -29,8 +29,9 @@ var UI = function (boardSize) {
     boardCanvas.setAttribute("width",  BoardInPixel.width);
     boardCanvas.setAttribute("height", BoardInPixel.height);
 
-    var panelShowCurStep = document.getElementById("currentStep");
-    var panelShowTolStep = document.getElementById("totalStep");
+    var panelShowCurStep   = document.getElementById("currentStep");
+    var panelShowTolStep   = document.getElementById("totalStep");
+    var panelShowWhoseTurn = document.getElementById("whoseTurn");
 
     this.setCurrentStepinUI = function (step) {
         panelShowCurStep.innerHTML = "Current Step: " + step;
@@ -40,10 +41,11 @@ var UI = function (boardSize) {
         panelShowTolStep.innerHTML = "Total Steps: " + step;
     };
 
-    var btnBackStep     = document.getElementById("previousStep");
-    var btnNextStep     = document.getElementById("nextStep");
-    var btnSaveTheBoard = document.getElementById("saveTheBoard");
-    var btnRestart      = document.getElementById("restart");
+    var btnBackStep         = document.getElementById("previousStep");
+    var btnNextStep         = document.getElementById("nextStep");
+    var btnSaveTheBoard     = document.getElementById("saveTheBoard");
+    var btnRestart          = document.getElementById("restart");
+    var btnUpLoadChessBoard = document.getElementById('uploadChessBoard');
 
     this.getBtnBackStep = function () {
         return btnBackStep;
@@ -67,6 +69,9 @@ var UI = function (boardSize) {
         }
     };
 
+    this.setBtnUploadHistorySteps = function (func, obj) {
+        btnUpLoadChessBoard.addEventListener('change', func);
+    };
 
 
     this.clearChessAtPosition = function (row, col) {
@@ -119,7 +124,7 @@ var UI = function (boardSize) {
         chessCanvasCtx.fillStyle = gradient;
         chessCanvasCtx.fill();
 
-        playVoice();
+        //playVoice();
     };
 
     function drawChessBoard(color) {

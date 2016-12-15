@@ -4,16 +4,45 @@
  * Date     : 2016/12/2.
  */
 
+
 var ConnectedType = {
     None       :0,
-    SleepOne   :1, // --$*?--, --?*$--
-    SleepTwo   :2, // --$**??--, --???**--,--?*?*?--,--*???*--
-    SleepThree :3, // --***??--, --??***
-    SleepFour  :4, // --
+    SleepOne   :1,
+    SleepTwo   :2,
+    SleepThree :3,
+    SleepFour  :4,
     WakedOne   :5, // --?*???--, --??*??--,--???*?--
     WakedTwo   :6, // --?**? --, --??**?--
     WakedThree :7, // --?***?--,
-    WakedFour  :8  // --?****?--
+    WakedFour  :8, // --?****?--
+    Five       :9  // Game Over
+};
+
+var GradeTable = {
+    None           :0,
+
+    // Grade results for current player
+    Cur_SleepOne   :15,
+    Cur_SleepTwo   :100,
+    Cur_SleepThree :600,
+    Cur_SleepFour  :1600,
+    Cur_WakedOne   :50,
+    Cur_WakedTwo   :230,
+    Cur_WakedThree :1600,
+    Cur_WakedFour  :100000,
+
+    // Grade results for opponent player
+    Opp_SleepOne   :10,
+    Opp_SleepTwo   :80,
+    Opp_SleepThree :480,
+    Opp_SleepFour  :1800,
+    Opp_WakedOne   :40,
+    Opp_WakedTwo   :200,
+    Opp_WakedThree :1500,
+    Opp_WakedFour  :100000,
+
+    Five           :1000000  // Game Over
+
 };
 
 var Direction = {
@@ -39,6 +68,18 @@ function ArtificialIntelligence(boardSize, UI) {
 
     function isBlackTurn() {
         return whoseTurn == PIECES_TYPE.BLACK;
+    }
+
+    function getCurrentPlayer() {
+        return whoseTurn;
+    }
+
+    function getOpponentPlayer() {
+        if(isWhiteTurn()){
+            return PIECES_TYPE.BLACK;
+        }else{
+            return PIECES_TYPE.WHITE;
+        }
     }
 
     function swithTurns() {
@@ -114,6 +155,15 @@ function ArtificialIntelligence(boardSize, UI) {
         return !isWakedFour(line, pieceType);
     }
 
+    function isFive(line, pieceType) {
+        if( (line.length == 5) && (line[0] == pieceType && line[1] == pieceType &&
+            line[2] == pieceType &&line[3] == pieceType && line[4] == pieceType) ){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     function getPiecesOnALine(startPoint, direction, count) {
         var pieces = [];
         var row = startPoint.row;
@@ -149,12 +199,15 @@ function ArtificialIntelligence(boardSize, UI) {
         var direction  = wayToWin.direction;
         var line;
 
-        if(count < 4){
+        if(count != 4){
             line = getPiecesOnALine(startPoint, direction, 5);
         }else{
             line = getPiecesOnALine(startPoint, direction, 6);
         }
 
+        if(count == 5 && isFive(line, pieceType)){
+            return ConnectedType.Five;
+        }
 
         if(count == 4 && isWakedFour(line, pieceType)){
             return ConnectedType.WakedFour;
@@ -188,7 +241,7 @@ function ArtificialIntelligence(boardSize, UI) {
             return ConnectedType.SleepOne;
         }
 
-        window.alert("Error! in checkConnectedType");
+        console.error("Error! in checkConnectedType");
     }
 
     var diffWayToWin = 0;
@@ -276,6 +329,8 @@ function ArtificialIntelligence(boardSize, UI) {
         var whiteScore = [];
         var blackScore = [];
 
+        var action = "";
+
         var maxScore= 0;
         var m = -1, n = -1;//position where get the max score
 
@@ -342,7 +397,7 @@ function ArtificialIntelligence(boardSize, UI) {
                                 if(connectedType == ConnectedType.SleepThree){
                                     blackScore[i][j] += 240;
                                 }else{
-                                    blackScore[i][j] += 480;
+                                    blackScore[i][j] += 680;
                                 }
                             }else if(blackWins[k] == 4){
                                 blackScore[i][j] += 3000;
@@ -354,10 +409,12 @@ function ArtificialIntelligence(boardSize, UI) {
                         maxScore = blackScore[i][j];
                         m = i;
                         n = j;
+                        action = "attack";
                     } else if (blackScore[i][j] == maxScore){
                         if((m >= 0 && n >= 0 ) && whiteScore[i][j] > whiteScore[m][n]){
                             m = i;
                             n = j;
+                            action = "defense";
                         }
                     }
 
@@ -365,77 +422,154 @@ function ArtificialIntelligence(boardSize, UI) {
                         maxScore = whiteScore[i][j];
                         m = i;
                         n = j;
+                        action = "defense";
                     }else if (whiteScore[i][j] == maxScore){
                         if((m >= 0 && n >= 0 ) && blackScore[i][j] > blackScore[m][n]){
                             m = i;
                             n = j;
+                            action = "attack";
                         }
                     }
                 }
             }
         }
 
-        console.log("row: " + m + ", col:" + n + " maxScore:" + maxScore);
+        console.log("row: " + m + ", col:" + n + " maxScore:" + maxScore + " action: " + action);
 
         return {"row":m, "col":n, "score": maxScore};
     };
 
     function judgement(board) {
 
-        var maxScore = 0;
-        var score    = [];
+        var currentPlayer = getCurrentPlayer();
+        var opponentPlayer= getOpponentPlayer();
+
+        var maxScore_CurrentPlayer = 0;
+        var maxScore_OpponentPlayer= 0;
+        var currentPlayerScore    = [];
+        var opponentPlayerScore   = [];
 
         for (var i = 0; i < size; i++){
-            score[i] = [];
+            currentPlayerScore[i]  = [];
+            opponentPlayerScore[i] = [];
+
             for(var j = 0; j < size; j++){
-                score[i][j] = 0;
+                currentPlayerScore[i][j]  = 0;
+                opponentPlayerScore[i][j] = 0;
             }
         }
 
-        var winsPossible;
-        var wins;
+        var currentPlayerWinsPossible;
+        var currentPlayerWins;
+        var opponentPlayerWinsPossible;
+        var opponentPlayerWins;
 
         if(isWhiteTurn()){
-            winsPossible = whiteWinsPossible;
-            wins = whiteWins;
-        }else{
-            winsPossible = blackWinsPossible;
-            wins = blackWins;
-        }
+            currentPlayerWinsPossible  = whiteWinsPossible;
+            currentPlayerWins          = whiteWins;
 
-        var x;
-        var y;
+            opponentPlayerWinsPossible = blackWinsPossible;
+            opponentPlayerWins         = blackWins;
+        }else{
+            currentPlayerWinsPossible  = blackWinsPossible;
+            currentPlayerWins          = blackWins;
+
+            opponentPlayerWinsPossible = whiteWinsPossible;
+            opponentPlayerWins         = whiteWins;
+        }
 
         for(var i = 0; i < size; i++){
             for(var j = 0; j < size; j++){
 
-                for(var k = 0; k < diffWayToWin; k++){
+                if(board.getPiece(i, j) == whoseTurn){
 
-                    if(waysToWin[i][j][k] && winsPossible[k]){
-                        if(wins[k] == 1){
-                            score[i][j] += 1;
-                        }else if(wins[k] == 2){
-                            score[i][j] += 10;
-                        }else if(wins[k] == 3){
-                            score[i][j] += 100;
-                        }else if(wins[k] == 4){
-                            score[i][j] += 10000;
+                    for(var k = 0; k < diffWayToWin; k++){
+
+                        wayToWin = waysToWin[i][j][k];
+
+                        if(wayToWin && currentPlayerWinsPossible[k]){
+
+                            connectedType = checkConnectedType(wayToWin, currentPlayer, currentPlayerWins[k]);
+
+                            if(currentPlayerWins[k] == 1){
+                                if(connectedType == ConnectedType.SleepOne){
+                                    currentPlayerScore[i][j] += GradeTable.Cur_SleepOne;
+                                }else{
+                                    currentPlayerScore[i][j] += GradeTable.Cur_WakedOne;
+                                }
+                            }else if(currentPlayerWins[k] == 2){
+                                if(connectedType == ConnectedType.SleepTwo){
+                                    currentPlayerScore[i][j] += GradeTable.Cur_SleepTwo;
+                                }else{
+                                    currentPlayerScore[i][j] += GradeTable.Cur_WakedTwo;
+                                }
+                            }else if(currentPlayerWins[k] == 3){
+                                if(connectedType == ConnectedType.SleepThree){
+                                    currentPlayerScore[i][j] += GradeTable.Cur_SleepThree;
+                                }else{
+                                    currentPlayerScore[i][j] += GradeTable.Cur_WakedThree;
+                                }
+                            }else if(currentPlayerWins[k] == 4){
+
+                                currentPlayerScore[i][j] += GradeTable.Cur_WakedFour;
+
+                            }else if(currentPlayerWins[k] == 5){
+
+                                currentPlayerScore[i][j] += GradeTable.Five;
+                            }
+                        }
+
+                        if(currentPlayerScore[i][j] > maxScore_CurrentPlayer){
+                            maxScore_CurrentPlayer = currentPlayerScore[i][j];
                         }
                     }
+                }else{
+                    for(var k = 0; k < diffWayToWin; k++){
 
-                    if(score[i][j] > maxScore){
-                        maxScore = score[i][j];
-                        x = i;
-                        y = j;
+                        wayToWin = waysToWin[i][j][k];
+
+                        if(wayToWin && opponentPlayerWinsPossible[k]){
+
+                            connectedType = checkConnectedType(wayToWin, opponentPlayer, opponentPlayerWins[k]);
+
+                            if(opponentPlayerWins[k] == 1){
+                                if(connectedType == ConnectedType.SleepOne){
+                                    opponentPlayerScore[i][j] += GradeTable.Opp_SleepOne;
+                                }else{
+                                    opponentPlayerScore[i][j] += GradeTable.Opp_WakedOne;
+                                }
+                            }else if(opponentPlayerWins[k] == 2){
+                                if(connectedType == ConnectedType.SleepTwo){
+                                    opponentPlayerScore[i][j] += GradeTable.Opp_SleepTwo;
+                                }else{
+                                    opponentPlayerScore[i][j] += GradeTable.Opp_WakedTwo;
+                                }
+
+                            }else if(opponentPlayerWins[k] == 3){
+                                if(connectedType == ConnectedType.SleepThree){
+                                    opponentPlayerScore[i][j] += GradeTable.Opp_SleepThree;
+                                }else{
+                                    opponentPlayerScore[i][j] += GradeTable.Opp_WakedThree;
+                                }
+                            }else if(opponentPlayerWins[k] == 4){
+
+                                opponentPlayerScore[i][j] += GradeTable.Opp_WakedFour;
+
+                            }else if(opponentPlayerWins[k] == 5){
+
+                                opponentPlayerScore[i][j] += GradeTable.Five;
+                            }
+                        }
+
+                        if(opponentPlayerScore[i][j] > maxScore_OpponentPlayer){
+                            maxScore_OpponentPlayer = opponentPlayerScore[i][j];
+                        }
                     }
                 }
             }
         }
 
-        userInterface.showGrade(x, y, maxScore);
-        console.log("Judgement maxScore:" + maxScore);
-
-        return maxScore;
+        return maxScore_CurrentPlayer - maxScore_OpponentPlayer;
     }
 
     function oneStep(board, row, col) {
@@ -466,7 +600,7 @@ function ArtificialIntelligence(boardSize, UI) {
     function undoStep(board, row, col, whoseTurn) {
         undoTimes++;
 
-        console.info("whoseTurn: " + whoseTurn);
+        //console.info("whoseTurn: " + whoseTurn);
 
         if (! board.isEmptyLocation(row, col)) {
 
@@ -504,11 +638,6 @@ function ArtificialIntelligence(boardSize, UI) {
     }
 
     this.backStep = function (board, row, col, whoseTurn) {
-        if(whoseTurn == PIECES_TYPE.WHITE){
-            whoseTurn = PIECES_TYPE.BLACK;
-        }else{
-            whoseTurn = PIECES_TYPE.WHITE;
-        }
         undoStep(board, row, col, whoseTurn);
     };
 
@@ -613,14 +742,14 @@ function ArtificialIntelligence(boardSize, UI) {
         }
 
         if(maximizingPlayer){
-            bestValue = -100000;
 
+            bestValue = -100000;
             var steps = generateAllPossibleSteps(board);
             for(var i = 0; i < steps.length; i++){
 
                 board = oneStep(board, steps[i].row, steps[i].col);
                 value = MinMaxSearch(board, depth - 1, false);
-                board = undoStep(board, steps[i].row, steps[i].col);
+                board = undoStep(board, steps[i].row, steps[i].col, getOpponentPlayer());
 
                 if(bestValue < value){
                     bestValue = value;
@@ -631,20 +760,21 @@ function ArtificialIntelligence(boardSize, UI) {
             }
 
         } else{
+
             bestValue = +100000;
             var steps = generateAllPossibleSteps(board);
             for(var i = 0; i < steps.length; i++){
 
                 board = oneStep(board, steps[i].row, steps[i].col);
                 value = MinMaxSearch(board, depth - 1, true);
-                board = undoStep(board, steps[i].row, steps[i].col);
-
-                if(bestValue > value){
+                board = undoStep(board, steps[i].row, steps[i].col, getOpponentPlayer());
+                if(bestValue > value) {
                     bestValue = value;
-                    if(depth == MAX_DEPTH){
+                    if (depth == MAX_DEPTH) {
                         bestStep = steps[i];
                     }
                 }
+
             }
         }
 
@@ -669,7 +799,7 @@ function ArtificialIntelligence(boardSize, UI) {
 
         var player = getWhoseTurn();
 
-        console.log("Player: " + player + " depth: " + depth);
+        //console.log("Player: " + player + " depth: " + depth);
 
         var value;
 
@@ -687,7 +817,7 @@ function ArtificialIntelligence(boardSize, UI) {
 
                 value = Math.max(value, AlphaBetaSearch(board, depth - 1, alpha, beta, false));
 
-                board = undoStep(board, steps[i].row, steps[i].col);
+                board = undoStep(board, steps[i].row, steps[i].col, whoseTurn);
 
                 //剪枝
                 alpha = Math.max(alpha, value);
@@ -705,7 +835,7 @@ function ArtificialIntelligence(boardSize, UI) {
 
                 value = Math.min(value, AlphaBetaSearch(board, depth - 1, alpha, beta, true));
 
-                board = undoStep(board, steps[i].row, steps[i].col);
+                board = undoStep(board, steps[i].row, steps[i].col, whoseTurn);
 
 
                 //beta = Math.min(value, beta);
@@ -741,7 +871,7 @@ function ArtificialIntelligence(boardSize, UI) {
         //     AlphaBetaSearch(board, MAX_DEPTH, -100000, +100000, true);
         // }
 
-        console.info("updateTimes: "+ updateTimes + " undoTimes: " + undoTimes);
+        //console.info("updateTimes: "+ updateTimes + " undoTimes: " + undoTimes);
         return bestStep;
     };
 
