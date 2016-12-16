@@ -491,31 +491,37 @@ function ArtificialIntelligence(boardSize, UI) {
 
                             connectedType = checkConnectedType(wayToWin, currentPlayer, currentPlayerWins[k]);
 
-                            if(currentPlayerWins[k] == 1){
-                                if(connectedType == ConnectedType.SleepOne){
-                                    currentPlayerScore[i][j] += GradeTable.Cur_SleepOne;
+                            if(currentPlayerWins[k] == 5){
+
+                                currentPlayerScore[i][j] += GradeTable.Five;
+                                maxScore_CurrentPlayer = currentPlayerScore[i][j];
+                                break;
+                            } else if(currentPlayerWins[k] == 4){
+
+                                if(connectedType == ConnectedType.SleepFour){
+                                    currentPlayerScore[i][j] += GradeTable.Cur_SleepFour;
                                 }else{
-                                    currentPlayerScore[i][j] += GradeTable.Cur_WakedOne;
+                                    currentPlayerScore[i][j] += GradeTable.Cur_WakedFour;
                                 }
-                            }else if(currentPlayerWins[k] == 2){
-                                if(connectedType == ConnectedType.SleepTwo){
-                                    currentPlayerScore[i][j] += GradeTable.Cur_SleepTwo;
-                                }else{
-                                    currentPlayerScore[i][j] += GradeTable.Cur_WakedTwo;
-                                }
-                            }else if(currentPlayerWins[k] == 3){
+
+                            } else if(currentPlayerWins[k] == 3){
                                 if(connectedType == ConnectedType.SleepThree){
                                     currentPlayerScore[i][j] += GradeTable.Cur_SleepThree;
                                 }else{
                                     currentPlayerScore[i][j] += GradeTable.Cur_WakedThree;
                                 }
-                            }else if(currentPlayerWins[k] == 4){
-
-                                currentPlayerScore[i][j] += GradeTable.Cur_WakedFour;
-
-                            }else if(currentPlayerWins[k] == 5){
-
-                                currentPlayerScore[i][j] += GradeTable.Five;
+                            } else if(currentPlayerWins[k] == 2){
+                                if(connectedType == ConnectedType.SleepTwo){
+                                    currentPlayerScore[i][j] += GradeTable.Cur_SleepTwo;
+                                }else{
+                                    currentPlayerScore[i][j] += GradeTable.Cur_WakedTwo;
+                                }
+                            } else if(currentPlayerWins[k] == 1){
+                                if(connectedType == ConnectedType.SleepOne){
+                                    currentPlayerScore[i][j] += GradeTable.Cur_SleepOne;
+                                }else{
+                                    currentPlayerScore[i][j] += GradeTable.Cur_WakedOne;
+                                }
                             }
                         }
 
@@ -523,7 +529,7 @@ function ArtificialIntelligence(boardSize, UI) {
                             maxScore_CurrentPlayer = currentPlayerScore[i][j];
                         }
                     }
-                }else{
+                }else if (! board.isEmptyLocation(i, j)){
                     for(var k = 0; k < diffWayToWin; k++){
 
                         wayToWin = waysToWin[i][j][k];
@@ -532,17 +538,18 @@ function ArtificialIntelligence(boardSize, UI) {
 
                             connectedType = checkConnectedType(wayToWin, opponentPlayer, opponentPlayerWins[k]);
 
-                            if(opponentPlayerWins[k] == 1){
-                                if(connectedType == ConnectedType.SleepOne){
-                                    opponentPlayerScore[i][j] += GradeTable.Opp_SleepOne;
+                            if(opponentPlayerWins[k] == 5){
+
+                                opponentPlayerScore[i][j] += GradeTable.Five;
+                                maxScore_OpponentPlayer = opponentPlayerScore[i][j];
+                                break;
+
+                            }else if(opponentPlayerWins[k] == 4){
+
+                                if(connectedType == ConnectedType.SleepFour){
+                                    opponentPlayerScore[i][j] += GradeTable.Opp_SleepFour;
                                 }else{
-                                    opponentPlayerScore[i][j] += GradeTable.Opp_WakedOne;
-                                }
-                            }else if(opponentPlayerWins[k] == 2){
-                                if(connectedType == ConnectedType.SleepTwo){
-                                    opponentPlayerScore[i][j] += GradeTable.Opp_SleepTwo;
-                                }else{
-                                    opponentPlayerScore[i][j] += GradeTable.Opp_WakedTwo;
+                                    opponentPlayerScore[i][j] += GradeTable.Opp_WakedFour;
                                 }
 
                             }else if(opponentPlayerWins[k] == 3){
@@ -551,13 +558,19 @@ function ArtificialIntelligence(boardSize, UI) {
                                 }else{
                                     opponentPlayerScore[i][j] += GradeTable.Opp_WakedThree;
                                 }
-                            }else if(opponentPlayerWins[k] == 4){
+                            }else if(opponentPlayerWins[k] == 2){
+                                if(connectedType == ConnectedType.SleepTwo){
+                                    opponentPlayerScore[i][j] += GradeTable.Opp_SleepTwo;
+                                }else{
+                                    opponentPlayerScore[i][j] += GradeTable.Opp_WakedTwo;
+                                }
 
-                                opponentPlayerScore[i][j] += GradeTable.Opp_WakedFour;
-
-                            }else if(opponentPlayerWins[k] == 5){
-
-                                opponentPlayerScore[i][j] += GradeTable.Five;
+                            }else if(opponentPlayerWins[k] == 1){
+                                if(connectedType == ConnectedType.SleepOne){
+                                    opponentPlayerScore[i][j] += GradeTable.Opp_SleepOne;
+                                }else{
+                                    opponentPlayerScore[i][j] += GradeTable.Opp_WakedOne;
+                                }
                             }
                         }
 
@@ -781,43 +794,32 @@ function ArtificialIntelligence(boardSize, UI) {
         return bestValue;
     };
 
-    // function MinMaxSearch (player, board) {
-    //
-    //     var value;
-    //
-    //     // 后手一开始必须要防守，所以一开始先调用minSearch
-    //     if(player == PIECES_TYPE.BLACK){
-    //         value = _minSearch(board, MAX_DEPTH);
-    //     }else{
-    //         value = _maxSearch(board, MAX_DEPTH);
-    //     }
-    //
-    //     return value;
-    // }
 
     function AlphaBetaSearch(board, depth, alpha, beta, maximizingPlayer) {
 
-        var player = getWhoseTurn();
-
-        //console.log("Player: " + player + " depth: " + depth);
-
-        var value;
+        var bestValue;
 
         if(depth <= 0){
-            value = judgement(board);
-            return value;
+            bestValue = judgement(board);
+            return bestValue;
         }
-        var steps = generateAllPossibleSteps(board);
 
         if(maximizingPlayer){
-            value = -100000; // -Infinity
+
+            bestValue = -100000;
+            var steps = generateAllPossibleSteps(board);
             for(var i = 0; i < steps.length; i++){
 
                 board = oneStep(board, steps[i].row, steps[i].col);
+                value = AlphaBetaSearch(board, depth - 1, alpha, beta, false);
+                board = undoStep(board, steps[i].row, steps[i].col, getOpponentPlayer());
 
-                value = Math.max(value, AlphaBetaSearch(board, depth - 1, alpha, beta, false));
-
-                board = undoStep(board, steps[i].row, steps[i].col, whoseTurn);
+                if(bestValue < value){
+                    bestValue = value;
+                    if(depth == MAX_DEPTH){
+                        bestStep = steps[i];
+                    }
+                }
 
                 //剪枝
                 alpha = Math.max(alpha, value);
@@ -826,52 +828,62 @@ function ArtificialIntelligence(boardSize, UI) {
                     break;
                 }
             }
-        } else{
-            value = +100000; // +Infinity
 
+        } else{
+
+            bestValue = +100000;
+            var steps = generateAllPossibleSteps(board);
             for(var i = 0; i < steps.length; i++){
 
                 board = oneStep(board, steps[i].row, steps[i].col);
-
-                value = Math.min(value, AlphaBetaSearch(board, depth - 1, alpha, beta, true));
-
-                board = undoStep(board, steps[i].row, steps[i].col, whoseTurn);
-
-
-                //beta = Math.min(value, beta);
-
-                if(value < beta){
-                    beta = value;
-                    if(depth == MAX_DEPTH){
+                value = MinMaxSearch(board, depth - 1, alpha, beta, true);
+                board = undoStep(board, steps[i].row, steps[i].col, getOpponentPlayer());
+                if(bestValue > value) {
+                    bestValue = value;
+                    if (depth == MAX_DEPTH) {
                         bestStep = steps[i];
                     }
                 }
 
+                beta = Math.min(value, beta);
+
                 if(beta <= alpha){
                     break;
                 }
+
             }
-
-
         }
 
-        return value;
+        return bestValue;
     }
 
     this.takeStep = function(player, board){
 
         whoseTurn = PIECES_TYPE.BLACK;
 
-        MinMaxSearch(board, MAX_DEPTH, false);
 
-        // debugger;
-        // if(whoseTurn == PIECES_TYPE.BLACK){
-        //     AlphaBetaSearch(board, MAX_DEPTH, -100000, +100000, false);
-        // }else{
-        //     AlphaBetaSearch(board, MAX_DEPTH, -100000, +100000, true);
-        // }
+        // MinMaxSearch(board, MAX_DEPTH, false);
 
-        //console.info("updateTimes: "+ updateTimes + " undoTimes: " + undoTimes);
+        if(whoseTurn == PIECES_TYPE.BLACK){
+
+            value = judgement(board);
+            if(value > 1000) {
+
+                MAX_DEPTH = 1; // Try to find killer threat
+                AlphaBetaSearch(board, MAX_DEPTH, -100000, +100000, false);
+            }else{
+
+                MAX_DEPTH = 3;
+                AlphaBetaSearch(board, MAX_DEPTH, -100000, +100000, false);
+            }
+
+        }else{
+            /*
+            * Only called when AI to AI
+            * */
+            AlphaBetaSearch(board, MAX_DEPTH, -100000, +100000, true);
+        }
+
         return bestStep;
     };
 
