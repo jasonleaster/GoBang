@@ -1,0 +1,42 @@
+[
+  {
+    "row": 3,
+    "col": 3,
+    "player": 1
+  },
+  {
+    "row": 2,
+    "col": 2,
+    "player": 2
+  },
+  {
+    "row": 3,
+    "col": 1,
+    "player": 1
+  },
+  {
+    "row": 2,
+    "col": 3,
+    "player": 2
+  },
+  {
+    "row": 4,
+    "col": 2,
+    "player": 1
+  },
+  {
+    "row": 2,
+    "col": 4,
+    "player": 2
+  },
+  {
+    "row": 4,
+    "col": 4,
+    "player": 1
+  },
+  {
+    "row": 2,
+    "col": 0,
+    "player": 2
+  }
+]
