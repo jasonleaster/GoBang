@@ -6,9 +6,83 @@
 
 var PIECES_TYPE = { NONE  : 0, WHITE : 1, BLACK : 2};
 
+/**
+ * The representation of the board.
+ * @param size
+ * @constructor
+ */
 function Board(size) {
     var _size  = size;
     var _chessBoard = [];
+
+    /*
+    * Board representation as a hash value
+    * which is used for cache.
+    * */
+    var _hashValue  = 0;
+    var _hashTable  = new BoardStatusCacheTable(size);
+
+    /*
+    * dotted line boundary which are used for AI module.
+    * */
+    var _lowBoundary = {"row": size, "col":size};
+    var _upBoundary  = {"row": 0, "col":0};
+    var MARGIN = 1;
+
+    this.getLowBoundary = function () {
+        return _lowBoundary;
+    };
+
+    this.getUpBoundary = function () {
+        return _upBoundary;
+    };
+
+    function tryToUpdateLowBoundary(lowBoundary, row, col) {
+        row -= MARGIN;
+        col -= MARGIN;
+
+        if(! _legalRowIndex(row)){
+            row = 0;
+        }
+
+        if(! _legalColIndex(col)){
+            col = 0;
+        }
+
+        if(row < lowBoundary.row){
+            lowBoundary.row = row;
+        }
+
+        if(col < lowBoundary.col){
+            lowBoundary.col = col;
+        }
+
+        return lowBoundary;
+    }
+
+    function tryToUpdateUpBoundary(upBoundary, row, col) {
+
+        row += MARGIN;
+        col += MARGIN;
+
+        if(! _legalRowIndex(row)){
+            row = size-1;
+        }
+
+        if(! _legalColIndex(col)){
+            col = size-1;
+        }
+
+        if(row > upBoundary.row){
+            upBoundary.row = row;
+        }
+
+        if(col > upBoundary.col){
+            upBoundary.col = col;
+        }
+
+        return upBoundary;
+    }
 
     /*
     * Private Methods
@@ -17,7 +91,7 @@ function Board(size) {
     /**
      * Clean the board and set all slot into none;
      */
-    function cleanBoard() {
+    this.cleanBoard = function() {
         _chessBoard = [];
         for(var i = 0; i < size; i++){
             _chessBoard[i] = [];
@@ -25,7 +99,7 @@ function Board(size) {
                 _chessBoard[i][j] = PIECES_TYPE.NONE;
             }
         }
-    }
+    };
 
     /**
      * Public Methods
@@ -38,14 +112,32 @@ function Board(size) {
      * @param col
      * @returns {boolean}
      */
-    this.legalIndex = function (row, col) {
+
+    function _legalRowIndex(row) {
+        if(row < 0 || row >= size){
+            return false;
+        }
+
+        return true;
+    }
+
+    function _legalColIndex(col) {
+        if(col < 0 || col >= size){
+            return false;
+        }
+
+        return true;
+    }
+
+    function _legalIndex(row, col) {
         if(row < 0 || col < 0 ||
             row >= size || col >= size){
             return false;
         }
 
         return true;
-    };
+    }
+    this.legalIndex = _legalIndex;
 
     /**
      * Determine whether there have a piece.
@@ -56,7 +148,7 @@ function Board(size) {
      */
     this.isEmptyLocation = function (row, col) {
 
-        if(! this.legalIndex(row, col)){
+        if(! _legalIndex(row, col)){
             return;
         }
 
@@ -67,13 +159,36 @@ function Board(size) {
         if(! this.legalIndex(row, col)){
             return;
         }
+
         _chessBoard[row][col] = piece;
+
+        _hashValue = _hashTable.updateHashValue(_hashValue, row, col, piece);
+
+        this.autoSizeTheBoundary();
+    };
+
+    this.autoSizeTheBoundary = function () {
+        var lowBoundary = {"row": size, "col":size};
+        var upBoundary  = {"row": 0, "col":0};
+
+        for(var i = 0; i < size; i++){
+            for(var j = 0; j < size; j++){
+                if(! this.isEmptyLocation(i, j)){
+                    tryToUpdateLowBoundary(lowBoundary, i, j);
+                    tryToUpdateUpBoundary(upBoundary, i, j);
+                }
+            }
+        }
+
+        _lowBoundary = lowBoundary;
+        _upBoundary  = upBoundary;
     };
 
     this.getPiece = function (row, col) {
-        if(! this.legalIndex(row, col)){
+        if(! _legalIndex(row, col)){
             return;
         }
+
         return _chessBoard[row][col];
     };
 
@@ -81,14 +196,26 @@ function Board(size) {
         return _size;
     };
 
+    this.getHashValue = function () {
+        return _hashValue;
+    };
+
+    this.setHashValue = function (value) {
+        _hashValue = value;
+    };
+
     this.Init = function (){
-        cleanBoard();
+
+        this.cleanBoard();
+
+        _hashValue = _hashTable.getTheHashValue(this);
+
+        lowBoundary = {"row": size, "col":size};
+        upBoundary  = {"row": 0, "col":0};
     };
 
     this.Init();
 }
-
-var board = new Board(15);
 
 var GoBang = function (board) {
 
@@ -239,12 +366,12 @@ var GoBang = function (board) {
 
         historySteps.SyncHistoryToCurrentStep();
 
-        var step = AI.thinkWithOneDepth();
+        //var step = AI.thinkWithOneDepth();
 
         /*
         * developing
         * */
-        // var step = AI.takeStep(whoseTurn, board);
+        var step = AI.takeStep(whoseTurn, board);
 
         _stepAndUpdate(step.row, step.col);
     }
@@ -373,8 +500,6 @@ var GoBang = function (board) {
                         break;
                     }
                 }
-
-
             }
         }
 
@@ -384,6 +509,7 @@ var GoBang = function (board) {
     userInerface.setBtnRestart(this.start, this);
 };
 
+var board = new Board(10);
 
 window.onload = function () {
     var game = new GoBang(board);

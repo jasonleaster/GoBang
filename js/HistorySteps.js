@@ -2,6 +2,10 @@
  * Author   : EOF
  * File     : script.js
  * Date     : 2016/11/23.
+ *
+ * The module of storing the history steps
+ * which will be used to download all records
+ * and recovering from
  */
 
 var HistoryStep = function(goBang) {

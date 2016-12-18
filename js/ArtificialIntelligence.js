@@ -4,6 +4,54 @@
  * Date     : 2016/12/2.
  */
 
+/**
+ * Zobrist hashing
+ *
+ * @param size. The size of the board
+ * @constructor
+ */
+function BoardStatusCacheTable (size) {
+    var _size  = size;
+    var _table = [];
+
+    function randomInteger() {
+        var limit = 1 << 31 - 1;
+        return Math.floor( Math.random() * limit );
+    }
+
+    for(var i = 0; i < size; i++){
+        _table[i] = [];
+        for(var j = 0; j < size; j++){
+            _table[i][j] = [];
+            _table[i][j][PIECES_TYPE.NONE]  = randomInteger();
+            _table[i][j][PIECES_TYPE.WHITE] = randomInteger();
+            _table[i][j][PIECES_TYPE.BLACK] = randomInteger();
+        }
+    }
+
+    this.updateHashValue = function(oldHashValue, row, col, pieceType){
+        oldHashValue ^= _table[row][col][pieceType];
+        return oldHashValue;
+    };
+
+    this.getTheHashValue = function (board) {
+
+        var size = board.getSize();
+        var hashValue = 0;
+        var pieceType;
+
+        for(var i = 0; i < size; i++){
+            for(var j = 0; j < size; j++){
+
+                pieceType = board.getPiece(i, j);
+                hashValue ^= _table[i][j][pieceType];
+            }
+        }
+
+        return hashValue;
+    };
+
+}
 
 var ConnectedType = {
     None       :0,
@@ -22,24 +70,24 @@ var GradeTable = {
     None           :0,
 
     // Grade results for current player
-    Cur_SleepOne   :15,
-    Cur_SleepTwo   :100,
-    Cur_SleepThree :600,
-    Cur_SleepFour  :1600,
-    Cur_WakedOne   :50,
-    Cur_WakedTwo   :230,
-    Cur_WakedThree :1600,
-    Cur_WakedFour  :100000,
+    Cur_SleepOne   :1,
+    Cur_SleepTwo   :10,
+    Cur_SleepThree :100,
+    Cur_SleepFour  :3200,
+    Cur_WakedOne   :8,
+    Cur_WakedTwo   :40,
+    Cur_WakedThree :800,
+    Cur_WakedFour  :4000,
 
     // Grade results for opponent player
-    Opp_SleepOne   :10,
-    Opp_SleepTwo   :80,
-    Opp_SleepThree :480,
-    Opp_SleepFour  :1800,
-    Opp_WakedOne   :40,
-    Opp_WakedTwo   :200,
-    Opp_WakedThree :1500,
-    Opp_WakedFour  :100000,
+    Opp_SleepOne   :1,
+    Opp_SleepTwo   :10,
+    Opp_SleepThree :100,
+    Opp_SleepFour  :3200,
+    Opp_WakedOne   :8,
+    Opp_WakedTwo   :40,
+    Opp_WakedThree :800,
+    Opp_WakedFour  :4000,
 
     Five           :1000000  // Game Over
 
@@ -59,6 +107,8 @@ function ArtificialIntelligence(boardSize, UI) {
 
     var size = boardSize;
     var envPointer = this;
+
+    var cacheTable = [];
 
     var whoseTurn = PIECES_TYPE.BLACK; // recommend to change "piece" into "stone"
 
@@ -122,11 +172,21 @@ function ArtificialIntelligence(boardSize, UI) {
     }
 
     function isWakedThree(line, pieceType) {
-        if( (line.length == 5) && (line[1] == pieceType && line[2] == pieceType &&line[3] == pieceType) ){
-            return true;
-        }else{
-            return false;
+        if(line.length != 5){
+            return false
         }
+
+        var condition1 = (line[1] == pieceType && line[2] == pieceType && line[3] == pieceType);
+
+        var condition2 = (line[1] == pieceType && line[2] == pieceType && line[4] == pieceType);
+
+        var condition3 = (line[1] == pieceType && line[3] == pieceType && line[4] == pieceType);
+
+        if(condition1 || condition2 || condition3){
+            return true;
+        }
+
+        return false;
     }
 
     function isSleepThree(line, pieceType) {
@@ -724,8 +784,11 @@ function ArtificialIntelligence(boardSize, UI) {
 
         var steps = [];
 
-        for(var i = 0; i < size; i++){
-            for(var j = 0; j < size; j++){
+        var lowBoundary = board.getLowBoundary();
+        var upBoundary  = board.getUpBoundary();
+
+        for(var i = lowBoundary.row; i <= upBoundary.row; i++){
+            for(var j = lowBoundary.col; j <= upBoundary.col; j++){
                 if(board.isEmptyLocation(i, j)){
                     steps.push({"row": i, "col":j});
                 }
@@ -748,77 +811,96 @@ function ArtificialIntelligence(boardSize, UI) {
      */
     var MinMaxSearch = function (board, depth, maximizingPlayer) {
         var bestValue;
+        var bestStep;
 
         if(depth <= 0){
             bestValue = judgement(board);
-            return bestValue;
+            return {"bestValue": bestValue, "bestStep": -1};
         }
 
         if(maximizingPlayer){
 
-            bestValue = -100000;
+            bestValue = -1000000;
             var steps = generateAllPossibleSteps(board);
             for(var i = 0; i < steps.length; i++){
 
                 board = oneStep(board, steps[i].row, steps[i].col);
-                value = MinMaxSearch(board, depth - 1, false);
+                result= MinMaxSearch(board, depth - 1, false);
+                value = result.bestValue;
                 board = undoStep(board, steps[i].row, steps[i].col, getOpponentPlayer());
 
                 if(bestValue < value){
                     bestValue = value;
-                    if(depth == MAX_DEPTH){
-                        bestStep = steps[i];
-                    }
+                    bestStep = steps[i];
                 }
             }
 
         } else{
 
-            bestValue = +100000;
+            bestValue = +1000000;
             var steps = generateAllPossibleSteps(board);
             for(var i = 0; i < steps.length; i++){
 
                 board = oneStep(board, steps[i].row, steps[i].col);
-                value = MinMaxSearch(board, depth - 1, true);
+                result= MinMaxSearch(board, depth - 1, true);
+                value = result.bestValue;
                 board = undoStep(board, steps[i].row, steps[i].col, getOpponentPlayer());
                 if(bestValue > value) {
                     bestValue = value;
-                    if (depth == MAX_DEPTH) {
-                        bestStep = steps[i];
-                    }
+                    bestStep = steps[i];
                 }
 
             }
         }
 
-        return bestValue;
+        return {"bestValue": bestValue, "bestStep": bestStep};
     };
+
 
 
     function AlphaBetaSearch(board, depth, alpha, beta, maximizingPlayer) {
 
         var bestValue;
+        var bestStep;
 
         if(depth <= 0){
+            evaluationTimes++;
+            var key = board.getHashValue();
+            if(key in cacheTable){
+                hitCacheTimes++;
+                return {"bestValue": cacheTable[key], "bestStep":-1};
+            }
+
             bestValue = judgement(board);
-            return bestValue;
+
+            cacheTable[key] = bestValue;
+
+            return {"bestValue": bestValue, "bestStep":-1};
         }
+
+        var steps = generateAllPossibleSteps(board);
 
         if(maximizingPlayer){
 
-            bestValue = -100000;
-            var steps = generateAllPossibleSteps(board);
+            bestValue = -1000000;
             for(var i = 0; i < steps.length; i++){
 
                 board = oneStep(board, steps[i].row, steps[i].col);
-                value = AlphaBetaSearch(board, depth - 1, alpha, beta, false);
+
+                result = AlphaBetaSearch(board, depth - 1, alpha, beta, false);
+
+                value = result.bestValue;
+
+                hashKey = board.getHashValue();
+                if(! (hashKey in cacheTable)){
+                    cacheTable[hashKey] = value;
+                }
+
                 board = undoStep(board, steps[i].row, steps[i].col, getOpponentPlayer());
 
                 if(bestValue < value){
                     bestValue = value;
-                    if(depth == MAX_DEPTH){
-                        bestStep = steps[i];
-                    }
+                    bestStep  = steps[i];
                 }
 
                 //剪枝
@@ -831,18 +913,25 @@ function ArtificialIntelligence(boardSize, UI) {
 
         } else{
 
-            bestValue = +100000;
-            var steps = generateAllPossibleSteps(board);
+            bestValue = +1000000;
             for(var i = 0; i < steps.length; i++){
 
                 board = oneStep(board, steps[i].row, steps[i].col);
-                value = MinMaxSearch(board, depth - 1, alpha, beta, true);
+
+                result = AlphaBetaSearch(board, depth - 1, alpha, beta, true);
+
+                value = result.bestValue;
+
+                hashKey = board.getHashValue();
+                if(! (hashKey in cacheTable)){
+                    cacheTable[hashKey] = value;
+                }
+
                 board = undoStep(board, steps[i].row, steps[i].col, getOpponentPlayer());
+
                 if(bestValue > value) {
                     bestValue = value;
-                    if (depth == MAX_DEPTH) {
-                        bestStep = steps[i];
-                    }
+                    bestStep  = steps[i];
                 }
 
                 beta = Math.min(value, beta);
@@ -854,41 +943,158 @@ function ArtificialIntelligence(boardSize, UI) {
             }
         }
 
-        return bestValue;
+        hashKey = board.getHashValue();
+        if(! (hashKey in cacheTable)){
+            cacheTable[hashKey] = value;
+        }
+
+        return {"bestValue": bestValue, "bestStep":bestStep};
     }
 
+
+    var evaluationTimes = 0;
+    var hitCacheTimes = 0;
+    function PrincipalVariationSearch(board, depth, alpha, beta, maximizingPlayer) {
+
+        var bestValue;
+        var bestStep;
+
+        if(depth <= 0){
+            evaluationTimes++;
+            var key = board.getHashValue();
+            if(key in cacheTable){
+                hitCacheTimes++;
+                return {"bestValue": cacheTable[key], "bestStep":-1};
+            }
+
+            bestValue = judgement(board);
+
+            cacheTable[key] = bestValue;
+
+            return {"bestValue": bestValue, "bestStep":-1};
+        }
+
+        var steps = generateAllPossibleSteps(board);
+        var result = AlphaBetaSearch(board, 1, alpha, beta, true);
+        var optionalBestStep = result.bestStep;
+        steps.push(optionalBestStep);
+        steps.reverse();
+
+        if(maximizingPlayer){
+
+            bestValue = -1000000;
+            for(var i = 0; i < steps.length; i++){
+
+                board = oneStep(board, steps[i].row, steps[i].col);
+
+                result = PrincipalVariationSearch(board, depth - 1, alpha, beta, false);
+
+                value = result.bestValue;
+
+                hashKey = board.getHashValue();
+                if(! (hashKey in cacheTable)){
+                    cacheTable[hashKey] = value;
+                }
+
+                board = undoStep(board, steps[i].row, steps[i].col, getOpponentPlayer());
+
+                if(bestValue < value){
+                    bestValue = value;
+                    bestStep  = steps[i];
+                }
+
+                //剪枝
+                alpha = Math.max(alpha, value);
+
+                if(beta <= alpha){
+                    break;
+                }
+            }
+
+        } else{
+
+            bestValue = +1000000;
+            for(var i = 0; i < steps.length; i++){
+
+                board = oneStep(board, steps[i].row, steps[i].col);
+
+                result = PrincipalVariationSearch(board, depth - 1, alpha, beta, true);
+
+                value = result.bestValue;
+
+                hashKey = board.getHashValue();
+                if(! (hashKey in cacheTable)){
+                    cacheTable[hashKey] = value;
+                }
+
+                board = undoStep(board, steps[i].row, steps[i].col, getOpponentPlayer());
+
+                if(bestValue > value) {
+                    bestValue = value;
+                    bestStep  = steps[i];
+                }
+
+                beta = Math.min(value, beta);
+
+                if(beta <= alpha){
+                    break;
+                }
+
+            }
+        }
+
+        hashKey = board.getHashValue();
+        if(! (hashKey in cacheTable)){
+            cacheTable[hashKey] = value;
+        }
+
+        return {"bestValue": bestValue, "bestStep":bestStep};
+    }
+
+
+    var stepsNum = 0;
     this.takeStep = function(player, board){
+        var startTime = performance.now();
 
         whoseTurn = PIECES_TYPE.BLACK;
 
-
-        // MinMaxSearch(board, MAX_DEPTH, false);
-
+        //var SearchFunc = AlphaBetaSearch;
+        var SearchFunc = PrincipalVariationSearch;
         if(whoseTurn == PIECES_TYPE.BLACK){
 
-            value = judgement(board);
-            if(value > 1000) {
+            result = AlphaBetaSearch(board, 2, -100000, +100000, true);
 
-                MAX_DEPTH = 1; // Try to find killer threat
-                AlphaBetaSearch(board, MAX_DEPTH, -100000, +100000, false);
+            value = result.bestValue;
+
+            if(Math.abs(value) > (GradeTable.Cur_WakedThree - GradeTable.Cur_SleepThree)) {
+
+                MAX_DEPTH = 2; // Try to find killer threat
+                result = SearchFunc(board, MAX_DEPTH, -100000, +100000, true);
+                bestStep = result.bestStep;
             }else{
 
                 MAX_DEPTH = 3;
-                AlphaBetaSearch(board, MAX_DEPTH, -100000, +100000, false);
+
+                result = SearchFunc(board, MAX_DEPTH, -100000, +100000, false);
+                bestStep = result.bestStep;
             }
 
         }else{
             /*
             * Only called when AI to AI
             * */
-            AlphaBetaSearch(board, MAX_DEPTH, -100000, +100000, true);
+            SearchFunc(board, MAX_DEPTH, -100000, +100000, true);
         }
+
+        stepsNum++;
+        console.info("Evaluation Times: " + evaluationTimes + " Hit Cache Times :" + hitCacheTimes);
+
+        var endTime = performance.now();
+        console.log("Call to AI takeSteps function took " + (endTime - startTime) + " milliseconds.");
 
         return bestStep;
     };
-
-
-
+    
     this.init = function() {
 
         _init_waysToWin();

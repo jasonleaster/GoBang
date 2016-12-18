@@ -2,6 +2,8 @@
  * Author   : EOF
  * File     : script.js
  * Date     : 2016/11/24.
+ *
+ * The module of user interface.
  */
 
 var UI = function (boardSize) {
