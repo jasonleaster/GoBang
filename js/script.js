@@ -257,7 +257,9 @@ var GoBang = function (board) {
         userInerface.setBtnSaveTheBoard(historySteps.downloadAsJson, historySteps);
         userInerface.setBtnUploadHistorySteps(historySteps.uploadHistorySteps, historySteps);
 
-        whoseTurn = PIECES_TYPE.WHITE;
+        whoseTurn = PIECES_TYPE.BLACK;
+
+        _stepAndUpdate(Math.floor(size/2), Math.floor(size/2));
 
         gameOver = false;
     };
@@ -509,7 +511,7 @@ var GoBang = function (board) {
     userInerface.setBtnRestart(this.start, this);
 };
 
-var board = new Board(10);
+var board = new Board(15);
 
 window.onload = function () {
     var game = new GoBang(board);

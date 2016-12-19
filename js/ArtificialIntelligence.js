@@ -776,10 +776,30 @@ function ArtificialIntelligence(boardSize, UI) {
         return false;
     };
 
-    /**
-     * Search
-     * TODO implement min-max search
-     */
+    function closeToAnyoneExistedPiece(row, col) {
+        var lowBoundary = board.getLowBoundary();
+        var upBoundary  = board.getUpBoundary();
+        var distance = 0;
+
+        for(var i = lowBoundary.row; i <= upBoundary.row; i++){
+            for(var j = lowBoundary.col; j <= upBoundary.col; j++){
+                if(!board.isEmptyLocation(i, j)){
+
+                    distance = (row - i) * (row - i) + (col - j) * (col - j);
+
+                    if(distance >= 4)
+                    {
+                        continue;
+                    }else{
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
     function generateAllPossibleSteps(board) {
 
         var steps = [];
@@ -789,10 +809,51 @@ function ArtificialIntelligence(boardSize, UI) {
 
         for(var i = lowBoundary.row; i <= upBoundary.row; i++){
             for(var j = lowBoundary.col; j <= upBoundary.col; j++){
-                if(board.isEmptyLocation(i, j)){
+                if(board.isEmptyLocation(i, j) && closeToAnyoneExistedPiece(i, j)){
                     steps.push({"row": i, "col":j});
                 }
             }
+        }
+
+        return steps;
+    }
+
+    function generateSortedOptionalSteps(board) {
+        var steps = generateAllPossibleSteps(board);
+
+        var alpha = -100000;
+        var beta  = +100000;
+        for(var i = 0; i < steps.length; i++){
+
+            board = oneStep(board, steps[i].row, steps[i].col);
+
+            result = AlphaBetaSearch(board, 1, alpha, beta, false);
+
+            value = result.bestValue;
+
+            board = undoStep(board, steps[i].row, steps[i].col, getOpponentPlayer());
+
+            steps[i].score = value;
+        }
+
+        /*
+        * Sort the steps array by score
+        * */
+
+        for(var i = 0; i < steps.length; i++){
+            for(var j = i + 1; j < steps.length; j++){
+                if(steps[i].score < steps[j].score){
+                    tmp = steps[i];
+                    steps[i] = steps[j];
+                    steps[j] = tmp;
+                }
+            }
+        }
+
+        var savedStep = 4;
+        if(steps.length > savedStep)
+        {
+            steps = steps.slice(0, savedStep);
         }
 
         return steps;
@@ -974,11 +1035,7 @@ function ArtificialIntelligence(boardSize, UI) {
             return {"bestValue": bestValue, "bestStep":-1};
         }
 
-        var steps = generateAllPossibleSteps(board);
-        var result = AlphaBetaSearch(board, 1, alpha, beta, true);
-        var optionalBestStep = result.bestStep;
-        steps.push(optionalBestStep);
-        steps.reverse();
+        var steps = generateSortedOptionalSteps(board);
 
         if(maximizingPlayer){
 
