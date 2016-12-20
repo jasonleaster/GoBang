@@ -19,8 +19,12 @@ function Board(size) {
     * Board representation as a hash value
     * which is used for cache.
     * */
-    var _hashValue  = 0;
-    var _hashTable  = new BoardStatusCacheTable(size);
+    var _hashValue = "";
+
+    this.getHashValue = function () {
+        return _hashValue + "";
+    };
+
 
     /*
     * dotted line boundary which are used for AI module.
@@ -162,7 +166,18 @@ function Board(size) {
 
         _chessBoard[row][col] = piece;
 
-        _hashValue = _hashTable.updateHashValue(_hashValue, row, col, piece);
+        _hashValue = "";
+        for(var i = 0; i < size; i++){
+            for(var j = 0; j < size; j++){
+                if(_chessBoard[i][j] == PIECES_TYPE.NONE){
+                    _hashValue += "0";
+                }else if(_chessBoard[i][j] == PIECES_TYPE.WHITE){
+                    _hashValue += "1";
+                }else if(_chessBoard[i][j] == PIECES_TYPE.BLACK){
+                    _hashValue += "2";
+                }
+            }
+        }
 
         this.autoSizeTheBoundary();
     };
@@ -196,22 +211,13 @@ function Board(size) {
         return _size;
     };
 
-    this.getHashValue = function () {
-        return _hashValue;
-    };
-
-    this.setHashValue = function (value) {
-        _hashValue = value;
-    };
 
     this.Init = function (){
 
         this.cleanBoard();
 
-        _hashValue = _hashTable.getTheHashValue(this);
-
         lowBoundary = {"row": size, "col":size};
-        upBoundary  = {"row": 0, "col":0};
+        upBoundary  = {"row": 0,    "col":0};
     };
 
     this.Init();

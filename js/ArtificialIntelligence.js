@@ -10,48 +10,6 @@
  * @param size. The size of the board
  * @constructor
  */
-function BoardStatusCacheTable (size) {
-    var _size  = size;
-    var _table = [];
-
-    function randomInteger() {
-        var limit = 1 << 31 - 1;
-        return Math.floor( Math.random() * limit );
-    }
-
-    for(var i = 0; i < size; i++){
-        _table[i] = [];
-        for(var j = 0; j < size; j++){
-            _table[i][j] = [];
-            _table[i][j][PIECES_TYPE.NONE]  = randomInteger();
-            _table[i][j][PIECES_TYPE.WHITE] = randomInteger();
-            _table[i][j][PIECES_TYPE.BLACK] = randomInteger();
-        }
-    }
-
-    this.updateHashValue = function(oldHashValue, row, col, pieceType){
-        oldHashValue ^= _table[row][col][pieceType];
-        return oldHashValue;
-    };
-
-    this.getTheHashValue = function (board) {
-
-        var size = board.getSize();
-        var hashValue = 0;
-        var pieceType;
-
-        for(var i = 0; i < size; i++){
-            for(var j = 0; j < size; j++){
-
-                pieceType = board.getPiece(i, j);
-                hashValue ^= _table[i][j][pieceType];
-            }
-        }
-
-        return hashValue;
-    };
-
-}
 
 var ConnectedType = {
     None       :0,
@@ -86,7 +44,7 @@ var GradeTable = {
     Opp_SleepFour  :3200,
     Opp_WakedOne   :8,
     Opp_WakedTwo   :40,
-    Opp_WakedThree :800,
+    Opp_WakedThree :900,
     Opp_WakedFour  :4000,
 
     Five           :1000000  // Game Over
@@ -102,7 +60,7 @@ var Direction = {
 
 function ArtificialIntelligence(boardSize, UI) {
 
-    var DEBUG = true;
+    var DEBUG = false;
     var userInterface = UI;
 
     var size = boardSize;
@@ -538,8 +496,11 @@ function ArtificialIntelligence(boardSize, UI) {
             opponentPlayerWins         = whiteWins;
         }
 
-        for(var i = 0; i < size; i++){
-            for(var j = 0; j < size; j++){
+        var lowBoundary = board.getLowBoundary();
+        var upBoundary  = board.getUpBoundary();
+
+        for(var i = lowBoundary.row; i <= upBoundary.row; i++){
+            for(var j = lowBoundary.col; j <= upBoundary.col; j++){
 
                 if(board.getPiece(i, j) == whoseTurn){
 
@@ -787,7 +748,7 @@ function ArtificialIntelligence(boardSize, UI) {
 
                     distance = (row - i) * (row - i) + (col - j) * (col - j);
 
-                    if(distance >= 4)
+                    if(distance > 2)
                     {
                         continue;
                     }else{
@@ -1015,6 +976,7 @@ function ArtificialIntelligence(boardSize, UI) {
 
     var evaluationTimes = 0;
     var hitCacheTimes = 0;
+    var curOffTimes = 0;
     function PrincipalVariationSearch(board, depth, alpha, beta, maximizingPlayer) {
 
         var bestValue;
@@ -1064,6 +1026,7 @@ function ArtificialIntelligence(boardSize, UI) {
                 alpha = Math.max(alpha, value);
 
                 if(beta <= alpha){
+                    curOffTimes++;
                     break;
                 }
             }
@@ -1094,6 +1057,7 @@ function ArtificialIntelligence(boardSize, UI) {
                 beta = Math.min(value, beta);
 
                 if(beta <= alpha){
+                    curOffTimes++;
                     break;
                 }
 
@@ -1111,6 +1075,10 @@ function ArtificialIntelligence(boardSize, UI) {
 
     var stepsNum = 0;
     this.takeStep = function(player, board){
+        evaluationTimes = 0;
+        hitCacheTimes   = 0;
+        curOffTimes     = 0;
+
         var startTime = performance.now();
 
         whoseTurn = PIECES_TYPE.BLACK;
@@ -1148,7 +1116,7 @@ function ArtificialIntelligence(boardSize, UI) {
 
         var endTime = performance.now();
         console.log("Call to AI takeSteps function took " + (endTime - startTime) + " milliseconds.");
-
+        console.log("Cut Branches: "+ curOffTimes);
         return bestStep;
     };
     
