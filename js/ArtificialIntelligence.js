@@ -4,13 +4,6 @@
  * Date     : 2016/12/2.
  */
 
-/**
- * Zobrist hashing
- *
- * @param size. The size of the board
- * @constructor
- */
-
 var ConnectedType = {
     None       :0,
     SleepOne   :1,
@@ -1006,12 +999,12 @@ function ArtificialIntelligence(boardSize, UI) {
 
                 board = oneStep(board, steps[i].row, steps[i].col);
 
-                result = PrincipalVariationSearch(board, depth - 1, alpha, beta, false);
-
-                value = result.bestValue;
-
                 hashKey = board.getHashValue();
                 if(! (hashKey in cacheTable)){
+                    value = cacheTable[hashKey];
+                }else{
+                    result = PrincipalVariationSearch(board, depth - 1, alpha, beta, false);
+                    value = result.bestValue;
                     cacheTable[hashKey] = value;
                 }
 
@@ -1038,12 +1031,12 @@ function ArtificialIntelligence(boardSize, UI) {
 
                 board = oneStep(board, steps[i].row, steps[i].col);
 
-                result = PrincipalVariationSearch(board, depth - 1, alpha, beta, true);
-
-                value = result.bestValue;
-
                 hashKey = board.getHashValue();
                 if(! (hashKey in cacheTable)){
+                    value = cacheTable[hashKey];
+                }else{
+                    result = PrincipalVariationSearch(board, depth - 1, alpha, beta, true);
+                    value = result.bestValue;
                     cacheTable[hashKey] = value;
                 }
 
