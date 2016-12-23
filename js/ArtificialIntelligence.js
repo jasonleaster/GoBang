@@ -1081,7 +1081,7 @@ function ArtificialIntelligence(boardSize) {
                 bestStep = result.bestStep;
             }else{
 
-                MAX_DEPTH = 7;
+                MAX_DEPTH = 3;
 
                 result = SearchFunc(board, MAX_DEPTH, -100000, +100000, false);
                 bestStep = result.bestStep;
