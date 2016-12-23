@@ -51,10 +51,9 @@ var Direction = {
     Vertical  : {"row": +1, "col":  0}  // "|"
 };
 
-function ArtificialIntelligence(boardSize, UI) {
+function ArtificialIntelligence(boardSize) {
 
     var DEBUG = false;
-    var userInterface = UI;
 
     var size = boardSize;
     var envPointer = this;
@@ -602,16 +601,8 @@ function ArtificialIntelligence(boardSize, UI) {
     function oneStep(board, row, col) {
         if(isWhiteTurn()){
 
-            if(DEBUG){
-                userInterface.drawChessAtPosition(row, col, "white");
-            }
-
             board.setPiece(row, col, PIECES_TYPE.WHITE);
         }else{
-
-            if(DEBUG){
-                userInterface.drawChessAtPosition(row, col, "black");
-            }
 
             board.setPiece(row, col, PIECES_TYPE.BLACK);
         }
@@ -654,9 +645,6 @@ function ArtificialIntelligence(boardSize, UI) {
                 }
             }
 
-            if(DEBUG){
-                userInterface.clearChessAtPosition(row, col);
-            }
             board.setPiece(row, col, PIECES_TYPE.NONE);
         }
 
@@ -1068,6 +1056,8 @@ function ArtificialIntelligence(boardSize, UI) {
 
     var stepsNum = 0;
     this.takeStep = function(player, board){
+        debugger;
+        
         evaluationTimes = 0;
         hitCacheTimes   = 0;
         curOffTimes     = 0;
@@ -1091,7 +1081,7 @@ function ArtificialIntelligence(boardSize, UI) {
                 bestStep = result.bestStep;
             }else{
 
-                MAX_DEPTH = 3;
+                MAX_DEPTH = 7;
 
                 result = SearchFunc(board, MAX_DEPTH, -100000, +100000, false);
                 bestStep = result.bestStep;

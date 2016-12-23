@@ -235,9 +235,9 @@ var GoBang = function (board) {
         return whoseTurn == PIECES_TYPE.WHITE;
     }
 
-    var userInerface = new UI(size);
+    var userInterface = new UI(size);
     var historySteps = new HistoryStep();
-    var AI           = new ArtificialIntelligence(size, userInerface);
+    var AI           = new ArtificialIntelligence(size, userInterface);
     
 
     // public method
@@ -245,23 +245,23 @@ var GoBang = function (board) {
 
         board.Init();
 
-        userInerface = new UI(size);
+        userInterface = new UI(size);
         historySteps = new HistoryStep(this);
-        AI           = new ArtificialIntelligence(size, userInerface);
+        AI           = new ArtificialIntelligence(size, userInterface);
 
-        userInerface.reset();
-        userInerface.setCurrentStepinUI( historySteps.getCurrentStep() );
-        userInerface.setTotalStepinUI(   historySteps.getTotalStep() );
+        userInterface.reset();
+        userInterface.setCurrentStepinUI( historySteps.getCurrentStep() );
+        userInterface.setTotalStepinUI(   historySteps.getTotalStep() );
 
-        var btn     = userInerface.getBtnBackStep();
+        var btn     = userInterface.getBtnBackStep();
         btn.onclick = this.backStep;
         // Not Support yet
-        // btn         = userInerface.getBtnNextStep();
+        // btn         = userInterface.getBtnNextStep();
         // btn.onclick = this.nextStep;
 
-        userInerface.setUserClickFunc(User_Step, this);
-        userInerface.setBtnSaveTheBoard(historySteps.downloadAsJson, historySteps);
-        userInerface.setBtnUploadHistorySteps(historySteps.uploadHistorySteps, historySteps);
+        userInterface.setUserClickFunc(User_Step, this);
+        userInterface.setBtnSaveTheBoard(historySteps.downloadAsJson, historySteps);
+        userInterface.setBtnUploadHistorySteps(historySteps.uploadHistorySteps, historySteps);
 
         whoseTurn = PIECES_TYPE.BLACK;
 
@@ -278,9 +278,9 @@ var GoBang = function (board) {
 
             board.setPiece(row, col, PIECES_TYPE.NONE);
 
-            userInerface.clearChessAtPosition(row, col);
-            userInerface.setCurrentStepinUI( historySteps.getCurrentStep() );
-            userInerface.setTotalStepinUI(   historySteps.getTotalStep() );
+            userInterface.clearChessAtPosition(row, col);
+            userInterface.setCurrentStepinUI( historySteps.getCurrentStep() );
+            userInterface.setTotalStepinUI(   historySteps.getTotalStep() );
 
         }
     }
@@ -296,19 +296,19 @@ var GoBang = function (board) {
     function oneStep (row, col) {
 
         if(isPlayerTurn()){
-            userInerface.drawChessAtPosition(row, col, "white");
+            userInterface.drawChessAtPosition(row, col, "white");
             board.setPiece(row, col, PIECES_TYPE.WHITE);
         }else{
-            userInerface.drawChessAtPosition(row, col, "black");
+            userInterface.drawChessAtPosition(row, col, "black");
             board.setPiece(row, col, PIECES_TYPE.BLACK);
         }
 
         historySteps.saveStepToHistory(row, col, whoseTurn);
 
-        userInerface.setCurrentStepinUI( historySteps.getCurrentStep() );
-        userInerface.setTotalStepinUI(   historySteps.getTotalStep() );
+        userInterface.setCurrentStepinUI( historySteps.getCurrentStep() );
+        userInterface.setTotalStepinUI(   historySteps.getTotalStep() );
 
-        userInerface.showLocation(row, col);
+        userInterface.showLocation(row, col);
 
     }
 
@@ -415,9 +415,9 @@ var GoBang = function (board) {
 
         board.Init();
 
-        userInerface.reset();
-        userInerface.setCurrentStepinUI( historySteps.getCurrentStep() );
-        userInerface.setTotalStepinUI(   historySteps.getTotalStep() );
+        userInterface.reset();
+        userInterface.setCurrentStepinUI( historySteps.getCurrentStep() );
+        userInterface.setTotalStepinUI(   historySteps.getTotalStep() );
 
 
         var steps = historySteps.getSteps();
@@ -514,7 +514,7 @@ var GoBang = function (board) {
         return false;
     }
 
-    userInerface.setBtnRestart(this.start, this);
+    userInterface.setBtnRestart(this.start, this);
 };
 
 var board = new Board(15);
