@@ -1,3 +1,12 @@
+/**********************************************
+ *
+ * Author: EOF
+ * E-mail: jasonleaster@gmail.com
+ * Date  : 2016.12.30
+ * File  : AI.c
+ *
+ ***********************************************/
+
 #include "Gomoku.h"
 #include "AI.h"
 
@@ -292,12 +301,12 @@ int static isSleepFive(struct Line *line, enum PIECE_TYPE pieceType)
     return !isWakedFive(line, pieceType);
 }
 
-/**
- * TODO
- */
-
-enum ConnectedType checkConnectedType(struct Gomoku *pGame, enum PIECE_TYPE pieceType, int count)
+enum ConnectedType checkConnectedType(struct Gomoku *pGame, struct WayToWin wayToWin, enum PIECE_TYPE pieceType, int count)
 {
+    if(count == 0)
+    {
+        return 
+    }
 
     struct Point startPoint;
     struct Point direction;
