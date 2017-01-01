@@ -1,4 +1,5 @@
 #include "Gomoku.h"
+#include "AI.h"
 
 struct Board boardFactory(void)
 {
@@ -10,6 +11,12 @@ struct Board boardFactory(void)
     {
         board.board[i] = NONE;
     }
+
+    board.lowBoundary.row = BOARD_SIZE;
+    board.lowBoundary.col = BOARD_SIZE;
+
+    board.upBoundary.row = 0;
+    board.upBoundary.col = 0;
 
     return board;
 }
@@ -51,6 +58,8 @@ void setPiece(struct Gomoku * pGame, int row, int col)
 
     pBoard->board[index] = pGame->whoseTurn;
 
+    updateStatisticArray(pGame->pAI, row, col);
+
     /*
      * Switch turn
      * */
@@ -61,6 +70,29 @@ void setPiece(struct Gomoku * pGame, int row, int col)
     else
     {
         pGame->whoseTurn = WHITE;
+    }
+
+    /*
+     * Update Boundary Point
+     * */
+    if( pGame->gameBoard.lowBoundary.row > row)
+    {
+        pGame->gameBoard.lowBoundary.row = row;
+    }
+
+    if( pGame->gameBoard.lowBoundary.col > col)
+    {
+        pGame->gameBoard.lowBoundary.col = col;
+    }
+
+    if( pGame->gameBoard.upBoundary.row < row)
+    {
+        pGame->gameBoard.upBoundary.row = row;
+    }
+
+    if( pGame->gameBoard.upBoundary.col < col)
+    {
+        pGame->gameBoard.upBoundary.col = col;
     }
 }
 

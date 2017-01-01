@@ -29,12 +29,18 @@ struct Line
 
 struct Board
 {
-    char hashString[BOARD_SIZE * BOARD_SIZE];
+    //char hashString[BOARD_SIZE * BOARD_SIZE];
 
     /*
      * One dimension array to represent a two dimension board
      * */
     enum PIECE_TYPE board[BOARD_SIZE * BOARD_SIZE];
+
+    /**
+     * The dynamic boundary of the board
+     * */
+    struct Point lowBoundary;
+    struct Point upBoundary;
 
 };
 
@@ -42,6 +48,7 @@ struct Gomoku
 {
     enum PIECE_TYPE whoseTurn;
     struct Board gameBoard;
+    struct AI *pAI;
 };
 
 /**

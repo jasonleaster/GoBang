@@ -1,6 +1,9 @@
-SOURCE_FILE = Board.c Gomoku.c 
-OBJECT_FILE = Board.o Gomoku.o
+SOURCE_FILE = Board.c Gomoku.c AI.c
+OBJECT_FILE = Board.o Gomoku.o AI.o
 
+default:
+	gcc $(SOURCE_FILE) -g -c 
+	gcc $(OBJECT_FILE) -g -o ./a.out
 
 compile:
 	gcc $(SOURCE_FILE) -g -c 
@@ -10,3 +13,4 @@ link:
 
 clean: 
 	rm -rf ./*.o ./a.out
+
