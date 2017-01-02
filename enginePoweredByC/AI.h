@@ -1,6 +1,8 @@
 #ifndef __AI__
 #define __AI__
 
+//#define DEBUG
+
 #define WAYS_TO_WIN_BUF_SIZE 1024
 struct WayToWin
 {
@@ -34,7 +36,7 @@ struct AI
     int blackWinsPossible[WAYS_TO_WIN_BUF_SIZE];
 };
 
-void updateStatisticArray(struct AI* pAI, int row, int col);
+void updateStatisticArray(struct AI* pAI, int row, int col, enum PIECE_TYPE whoseTurn);
 
 enum ConnectedType
 {
@@ -57,6 +59,8 @@ enum ConnectedType
 
 struct
 {
+    int None;
+
     int Cur_SleepOne;
     int Cur_SleepTwo;
     int Cur_SleepThree;
@@ -79,5 +83,14 @@ struct
 
     int Five;
 } GradeTable;
+
+struct SearchResult
+{
+    struct Point bestStep;
+    int bestValue;
+};
+
+struct AI* AI_Factory(struct Gomoku *pGame);
+struct Point AI_takeStep(struct AI *pAI);
 
 #endif

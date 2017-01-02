@@ -10,15 +10,42 @@
 #include "Gomoku.h"
 #include "AI.h"
 
+// For profile the execution time of function.
+#include <sys/time.h>
+
 void static init_WaysToWin(struct AI *pAI);
 void static init_statisticPossibleToWin(struct AI *pAI);
 
-void init_AI(struct AI *pAI, struct Gomoku *pGame)
+void static init_AI(struct AI *pAI, struct Gomoku *pGame)
 {
     pAI->game = pGame;
 
     init_WaysToWin(pAI);
     init_statisticPossibleToWin(pAI);
+
+    GradeTable.None = 0;
+
+    GradeTable.Cur_SleepOne     = 1;
+    GradeTable.Cur_SleepTwo     = 10;
+    GradeTable.Cur_SleepThree   = 100;
+    GradeTable.Cur_SleepFour    = 3200;
+
+    GradeTable.Cur_WakedOne     = 8;
+    GradeTable.Cur_WakedTwo     = 40;
+    GradeTable.Cur_WakedThree   = 800;
+    GradeTable.Cur_WakedFour    = 4000;
+
+    GradeTable.Opp_SleepOne     = 1;
+    GradeTable.Opp_SleepTwo     = 10;
+    GradeTable.Opp_SleepThree   = 100;
+    GradeTable.Opp_SleepFour    = 3200;
+
+    GradeTable.Opp_WakedOne     = 8;
+    GradeTable.Opp_WakedTwo     = 40;
+    GradeTable.Opp_WakedThree   = 900;
+    GradeTable.Opp_WakedFour    = 4000;
+
+    GradeTable.Five             = 1000000;
 }
 
 void static init_statisticPossibleToWin(struct AI *pAI)
@@ -444,6 +471,17 @@ int static judgement(struct AI *pAI)
     int currentPlayerScore[BOARD_SIZE][BOARD_SIZE];
     int opponentPlayerScore[BOARD_SIZE][BOARD_SIZE];
 
+    int i = 0, j = 0, k = 0;
+    for(i = 0; i < BOARD_SIZE; i++)
+    {
+        for(j = 0; j < BOARD_SIZE; j++)
+        {
+            currentPlayerScore[i][j]  = 0;
+            opponentPlayerScore[i][j] = 0;
+        }
+
+    }
+
     int maxScore_CurrentPlayer  = 0;
     int maxScore_OpponentPlayer = 0;
 
@@ -479,7 +517,6 @@ int static judgement(struct AI *pAI)
 
     int count = 0;
 
-    int i = 0, j = 0, k = 0;
     for(i = lowBoundary.row; i <= upBoundary.row; i++)
     {
         for(j = lowBoundary.col; j <= upBoundary.col; j++)
@@ -491,8 +528,7 @@ int static judgement(struct AI *pAI)
                     count = currentPlayerWins[k];
                     pWayToWin = &(pAI->waysToWin[i][j][k]);
 
-                    // need to modify
-                    if(pWayToWin->existed == TRUE && currentPlayerWinsPossible[k])
+                    if(pWayToWin->existed == TRUE && currentPlayerWinsPossible[k] == TRUE)
                     {
                         connectedType = checkConnectedType(pBoard, *pWayToWin, currentPlayer, count);
                         if(count == 5)
@@ -537,7 +573,7 @@ int static judgement(struct AI *pAI)
                         else if(count == 1)
                         {
 
-                            if(connectedType == ConnectedType_WAKED_TWO)
+                            if(connectedType == ConnectedType_WAKED_ONE)
                             {
                                 currentPlayerScore[i][j] += GradeTable.Cur_WakedOne;
                             }
@@ -550,21 +586,22 @@ int static judgement(struct AI *pAI)
                     }
                 }
 
-                if(opponentPlayerScore[i][j] > maxScore_OpponentPlayer)
+                if(currentPlayerScore[i][j] > maxScore_CurrentPlayer)
                 {
-                    maxScore_OpponentPlayer = opponentPlayerScore[i][j];
+                    maxScore_CurrentPlayer = currentPlayerScore[i][j];
                 }
+
             }
             else if(pBoard->board[i * BOARD_SIZE + j] != NONE)
             {
                 for(k = 0; k < pAI->wayToWinCount; k++)
                 {
-                    count = currentPlayerWins[k];
+                    count = opponentPlayerWins[k];
 
                     pWayToWin = & (pAI->waysToWin[i][j][k]);
 
                     // need to modify
-                    if(pWayToWin->existed == TRUE && opponentPlayerWinsPossible[k])
+                    if(pWayToWin->existed == TRUE && opponentPlayerWinsPossible[k] == TRUE)
                     {
                         connectedType = checkConnectedType(pBoard, *pWayToWin, opponentPlayer, count);
                         if(count == 5)
@@ -609,7 +646,7 @@ int static judgement(struct AI *pAI)
                         else if(count == 1)
                         {
 
-                            if(connectedType == ConnectedType_WAKED_TWO)
+                            if(connectedType == ConnectedType_WAKED_ONE)
                             {
                                 opponentPlayerScore[i][j] += GradeTable.Cur_WakedOne;
                             }
@@ -632,22 +669,64 @@ int static judgement(struct AI *pAI)
     return maxScore_CurrentPlayer - maxScore_OpponentPlayer;
 }
 
-void static oneStep(struct Board *pBoard, struct Point step)
+void static oneStep(struct AI *pAI, int row, int col)
 {
-    //TODO
+    setPiece(pAI->game, row, col, pAI->game->whoseTurn);
 }
 
-void static undoStep(struct Board *pBoard, struct Point step, enum PIECE_TYPE whoseTurn)
+void static undoStep(struct AI *pAI, int row, int col, enum PIECE_TYPE whoseTurn)
 {
-    //TODO
+    int k = 0;
+
+    struct Board *pBoard = &(pAI->game->gameBoard);
+    struct WayToWin wayToWin;
+
+    if(pBoard->board[row * BOARD_SIZE + col] != NONE)
+    {
+        for(k = 0; k < pAI->wayToWinCount; k++)
+        {
+            wayToWin = pAI->waysToWin[row][col][k];
+            if(wayToWin.existed == TRUE)
+            {
+                if(whoseTurn == WHITE)
+                {
+                    if(pAI->whiteWins[k] == 1)
+                    {
+                        pAI->blackWinsPossible[k] = TRUE;
+                    }
+
+                    if(0 < pAI->whiteWins[k])
+                    {
+                        pAI->whiteWins[k]--;
+                    }
+                }
+                else
+                {
+                    if(pAI->blackWins[k] == 1)
+                    {
+                        pAI->whiteWinsPossible[k] = TRUE;
+                    }
+
+                    if(0 < pAI->blackWins[k])
+                    {
+                        pAI->blackWins[k]--;
+                    }
+                }
+                
+            }
+        }
+
+        pBoard->board[row * BOARD_SIZE + col] = NONE;
+        pAI->game->whoseTurn = whoseTurn;
+    }
 }
 
-void updateStatisticArray(struct AI* pAI, int row, int col)
+void updateStatisticArray(struct AI* pAI, int row, int col, enum PIECE_TYPE whoseTurn)
 {
     int k = 0;
     int waysToWinCount = pAI->wayToWinCount;
     struct WayToWin wayToWin;
-    if(pAI->game->whoseTurn == WHITE)
+    if(whoseTurn == WHITE)
     {
         for(k = 0; k < waysToWinCount; k++)
         {
@@ -673,7 +752,322 @@ void updateStatisticArray(struct AI* pAI, int row, int col)
     }
 }
 
+int static closeToAnyOneExistedPiece(struct Board *pBoard, int row, int col)
+{
+    if(
+        pBoard->board[(row - 1) * BOARD_SIZE + col - 1] != NONE ||
+        pBoard->board[(row - 1) * BOARD_SIZE + col    ] != NONE ||
+        pBoard->board[(row - 1) * BOARD_SIZE + col + 1] != NONE ||
+        pBoard->board[(row    ) * BOARD_SIZE + col - 1] != NONE ||
 
+        pBoard->board[(row    ) * BOARD_SIZE + col + 1] != NONE ||
+        pBoard->board[(row + 1) * BOARD_SIZE + col - 1] != NONE ||
+        pBoard->board[(row + 1) * BOARD_SIZE + col    ] != NONE ||
+        pBoard->board[(row + 1) * BOARD_SIZE + col + 1] != NONE
+            )
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+
+void generateAllPossibleSteps(struct Board *pBoard, struct Point *possibleSteps, int *possibleStepsCount)
+{
+    struct Point lowBoundary = pBoard->lowBoundary;
+    struct Point upBoundary  = pBoard->upBoundary;
+
+    *possibleStepsCount = 0;
+
+    int i = 0, j = 0;
+    for(i = lowBoundary.row; i <= upBoundary.row; i++)
+    {
+        for(j = lowBoundary.col; j <= upBoundary.col; j++)
+        {
+            if(pBoard->board[i * BOARD_SIZE + j] == NONE && closeToAnyOneExistedPiece(pBoard, i, j) == TRUE)
+            {
+                possibleSteps[*possibleStepsCount].row = i;
+                possibleSteps[*possibleStepsCount].col = j;
+
+                (*possibleStepsCount)++;
+            }
+        }
+    }
+}
+
+/**
+ * Min-Max Search
+ * */
+struct SearchResult minMaxSearch(struct AI *pAI, int depth, int maximizingPlayer)
+{
+    struct SearchResult result;
+    struct SearchResult resultSub;
+
+    if(depth <= 0)
+    {
+        result.bestValue = judgement(pAI);
+        return result;
+    }
+
+    struct Point possibleSteps[BOARD_SIZE * BOARD_SIZE];
+    int possibleStepsCount = 0;
+
+    if(maximizingPlayer == TRUE)
+    {
+        result.bestValue = -1000000;
+
+        generateAllPossibleSteps(&pAI->game->gameBoard, possibleSteps, &possibleStepsCount);
+
+        int i = 0;
+        struct Point step;
+        for(i = 0; i < possibleStepsCount; i++)
+        {
+            step = possibleSteps[i];
+
+            #ifdef DEBUG
+            boardShow(& (pAI->game->gameBoard) );
+            #endif
+
+            oneStep(pAI, step.row, step.col);
+
+            resultSub = minMaxSearch(pAI, depth - 1, FALSE);
+
+            undoStep(pAI, step.row, step.col, getOpponentPlayer(pAI->game));
+            
+            if(result.bestValue < resultSub.bestValue)
+            {
+                result.bestValue = resultSub.bestValue;
+                result.bestStep = step;
+            }
+        }
+    }
+    else
+    {
+        result.bestValue = +1000000;
+
+        generateAllPossibleSteps(&pAI->game->gameBoard, possibleSteps, &possibleStepsCount);
+
+        int i = 0;
+        struct Point step;
+        for(i = 0; i < possibleStepsCount; i++)
+        {
+            step = possibleSteps[i];
+
+            oneStep(pAI, step.row, step.col);
+
+            #ifdef DEBUG
+            boardShow(& (pAI->game->gameBoard) );
+            #endif
+
+            resultSub = minMaxSearch(pAI, depth - 1, TRUE);
+
+            undoStep(pAI, step.row, step.col, getOpponentPlayer(pAI->game));
+            
+            if(result.bestValue > resultSub.bestValue)
+            {
+                result.bestValue = resultSub.bestValue;
+                result.bestStep = step;
+            }
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Alpha-Beta Search
+ * */
+struct SearchResult alphaBetaSearch(struct AI *pAI, int depth, int alpha, int beta, int maximizingPlayer)
+{
+    struct SearchResult result;
+    struct SearchResult resultSub;
+
+    if(depth <= 0)
+    {
+        result.bestValue = judgement(pAI);
+        return result;
+    }
+
+    struct Point possibleSteps[BOARD_SIZE * BOARD_SIZE];
+    int possibleStepsCount = 0;
+
+    if(maximizingPlayer == TRUE)
+    {
+        result.bestValue = -1000000;
+
+        generateAllPossibleSteps(&pAI->game->gameBoard, possibleSteps, &possibleStepsCount);
+
+        int i = 0;
+        struct Point step;
+        for(i = 0; i < possibleStepsCount; i++)
+        {
+            step = possibleSteps[i];
+
+            #ifdef DEBUG
+            boardShow(& (pAI->game->gameBoard) );
+            #endif
+
+            oneStep(pAI, step.row, step.col);
+
+            resultSub = alphaBetaSearch(pAI, depth - 1, alpha, beta, FALSE);
+
+            undoStep(pAI, step.row, step.col, getOpponentPlayer(pAI->game));
+            
+            if(result.bestValue < resultSub.bestValue)
+            {
+                result.bestValue = resultSub.bestValue;
+                result.bestStep = step;
+            }
+
+            if(alpha < resultSub.bestValue)
+            {
+                alpha = resultSub.bestValue;
+            }
+
+            if(beta <= alpha)
+            {
+                break;
+            }
+        }
+    }
+    else
+    {
+        result.bestValue = +1000000;
+
+        generateAllPossibleSteps(&pAI->game->gameBoard, possibleSteps, &possibleStepsCount);
+
+        int i = 0;
+        struct Point step;
+        for(i = 0; i < possibleStepsCount; i++)
+        {
+            step = possibleSteps[i];
+
+            oneStep(pAI, step.row, step.col);
+
+            #ifdef DEBUG
+            boardShow(& (pAI->game->gameBoard) );
+            #endif
+
+            resultSub = alphaBetaSearch(pAI, depth - 1, alpha, beta, TRUE);
+
+            undoStep(pAI, step.row, step.col, getOpponentPlayer(pAI->game));
+            
+            if(result.bestValue > resultSub.bestValue)
+            {
+                result.bestValue = resultSub.bestValue;
+                result.bestStep = step;
+            }
+
+            if(beta > resultSub.bestValue)
+            {
+                beta = resultSub.bestValue;
+            }
+
+            if(beta <= alpha)
+            {
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+
+
+/**
+ * Helper function for debug
+ * */
+
+void static showAIStatus(struct AI *pAI)
+{
+    int count = pAI->wayToWinCount;
+    int k = 0;
+
+    printf("Show white wins:\n");
+    for(k = 0; k < count; k++)
+    {
+        printf("k:%3d = %3d\t", k, pAI->whiteWins[k]);
+        if(k % 4 == 0)
+        {
+            printf("\n");
+        }
+    }
+    printf("\n\n");
+
+    printf("Show white wins possible:\n");
+    for(k = 0; k < count; k++)
+    {
+        printf("k:%3d = %3d\t", k, pAI->whiteWinsPossible[k]);
+        if(k % 4 == 0)
+        {
+            printf("\n");
+        }
+    }
+    printf("\n\n");
+
+    printf("Show black wins:\n");
+    for(k = 0; k < count; k++)
+    {
+        printf("k:%3d = %3d\t", k, pAI->blackWins[k]);
+        if(k % 4 == 0)
+        {
+            printf("\n");
+        }
+    }
+    printf("\n\n");
+
+    printf("Show black wins possible:\n");
+    for(k = 0; k < count; k++)
+    {
+        printf("k:%3d = %3d\t", k, pAI->blackWinsPossible[k]);
+        if(k % 4 == 0)
+        {
+            printf("\n");
+        }
+    }
+    printf("\n\n");
+}
+
+void static showAllPossibleSteps(struct Point *possibleSteps, int possibleStepsCount)
+{
+    printf("\n\n");
+    
+    int i = 0;
+    for(i = 0; i < possibleStepsCount; i++)
+    {
+        printf("Row:%2d, Col:%2d\t", possibleSteps[i].row, possibleSteps[i].col);
+        if(i % 3 == 0)
+        {
+            printf("\n");
+        }
+    }
+
+    printf("\n\n");
+}
+
+struct AI* AI_Factory(struct Gomoku *pGame)
+{
+    struct AI* pAI = (struct AI*) malloc(sizeof(struct AI));
+
+    pGame->pAI = pAI;
+
+    init_AI(pAI, pGame);
+
+    return pAI;
+}
+
+struct Point AI_takeStep(struct AI* pAI)
+{
+//    struct SearchResult result = minMaxSearch(pAI, 3, FALSE);
+    struct SearchResult result = alphaBetaSearch(pAI, 5, -100000, +100000, FALSE);
+
+    return result.bestStep;
+}
+
+/**
 int main()
 {
 
@@ -685,15 +1079,39 @@ int main()
 
     init_AI(pAI, &game);
 
-    setPiece(pAI->game, 7, 7);
-    setPiece(pAI->game, 7, 8);
-    setPiece(pAI->game, 8, 7);
-    setPiece(pAI->game, 8, 8);
+    setPiece(pAI->game, 7, 7, game.whoseTurn);
+
+
+    struct timeval startTime;
+    gettimeofday(&startTime, NULL);
+
+    struct SearchResult result = minMaxSearch(pAI, 3, FALSE);
+
+    struct timeval endTime;
+    gettimeofday(&endTime, NULL);
+
+    printf("Cost time: %ld\n ", endTime.tv_sec - startTime.tv_sec);
+
+    setPiece(pAI->game, 7, 8, game.whoseTurn);
+    setPiece(pAI->game, 8, 7, game.whoseTurn);
+    setPiece(pAI->game, 8, 8, game.whoseTurn);
+
+    struct Point possibleSteps[BOARD_SIZE * BOARD_SIZE];
+    int possibleStepsCount = 0;
+
+    generateAllPossibleSteps(&pAI->game->gameBoard, possibleSteps, &possibleStepsCount);
+
+    showAllPossibleSteps(possibleSteps, possibleStepsCount);
+
+    undoStep(pAI, 7, 7, getOpponentPlayer(pAI->game));
 
     boardShow(& (game.gameBoard) );
 
-    judgement(pAI);
+    int grade = judgement(pAI);
+
+    printf("Grade : %d\n", grade);
 
     free(pAI);
     return 0;
 }
+**/

@@ -33,12 +33,12 @@ int legalIndex(int row, int col)
 }
 
 
-void setPiece(struct Gomoku * pGame, int row, int col)
+int setPiece(struct Gomoku * pGame, int row, int col, enum PIECE_TYPE piece)
 { 
     if(!pGame)
     {
         printf("pGame can not be NULL!\n");
-        return;
+        return FALSE;
     }
 
     struct Board *pBoard = &pGame->gameBoard;
@@ -46,19 +46,22 @@ void setPiece(struct Gomoku * pGame, int row, int col)
     if( legalIndex( row, col) == FALSE)
     {
         printf("illegal Index row: %d col: %d\n", row, col);
-        return;
+        return FALSE;
     }
 
     int index = row * BOARD_SIZE + col;
-    if(pBoard->board[index] != NONE)
+    if(piece != NONE && pBoard->board[index] != NONE)
     {
         printf("You are trying to drop piece where already have another piece.\n");
-        return;
+        return FALSE;
     }
 
-    pBoard->board[index] = pGame->whoseTurn;
+    pBoard->board[index] = piece;
 
-    updateStatisticArray(pGame->pAI, row, col);
+    if(piece != NONE)
+    {
+        updateStatisticArray(pGame->pAI, row, col, piece);
+    }
 
     /*
      * Switch turn
@@ -75,25 +78,45 @@ void setPiece(struct Gomoku * pGame, int row, int col)
     /*
      * Update Boundary Point
      * */
-    if( pGame->gameBoard.lowBoundary.row > row)
+    int newRow;
+    int newCol;
+    if( pGame->gameBoard.lowBoundary.row >= row)
     {
-        pGame->gameBoard.lowBoundary.row = row;
+        newRow = row - BOUNDARY_MARGIN;
+        if( 0 <= newRow && newRow < BOARD_SIZE)
+        {
+            pGame->gameBoard.lowBoundary.row = newRow;
+        }
     }
 
-    if( pGame->gameBoard.lowBoundary.col > col)
+    if( pGame->gameBoard.lowBoundary.col >= col)
     {
-        pGame->gameBoard.lowBoundary.col = col;
+        newCol = col - BOUNDARY_MARGIN;
+        if( 0 <= newCol && newCol < BOARD_SIZE)
+        {
+            pGame->gameBoard.lowBoundary.col = newCol;
+        }
     }
 
-    if( pGame->gameBoard.upBoundary.row < row)
+    if( pGame->gameBoard.upBoundary.row <= row)
     {
-        pGame->gameBoard.upBoundary.row = row;
+        newRow = row + BOUNDARY_MARGIN;
+        if( 0 <= newRow && newRow < BOARD_SIZE)
+        {   
+            pGame->gameBoard.upBoundary.row = newRow;
+        }
     }
 
-    if( pGame->gameBoard.upBoundary.col < col)
+    if( pGame->gameBoard.upBoundary.col <= col)
     {
-        pGame->gameBoard.upBoundary.col = col;
+        newCol = col + BOUNDARY_MARGIN;
+        if( 0 <= newCol && newCol < BOARD_SIZE)
+        {
+            pGame->gameBoard.upBoundary.col = newCol;
+        }
     }
+
+    return TRUE;
 }
 
 

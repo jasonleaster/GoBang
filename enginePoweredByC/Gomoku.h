@@ -27,6 +27,8 @@ struct Line
     int length;
 };
 
+#define BOUNDARY_MARGIN 1
+
 struct Board
 {
     //char hashString[BOARD_SIZE * BOARD_SIZE];
@@ -60,7 +62,7 @@ int legalIndex(int row, int col);
 
 void boardShow(struct Board *pBoard);
 
-void setPiece(struct Gomoku * pGame, int row, int col);
+int setPiece(struct Gomoku * pGame, int row, int col, enum PIECE_TYPE piece);
 
 
 /**
