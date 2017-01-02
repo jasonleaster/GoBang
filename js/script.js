@@ -153,7 +153,8 @@ function Board(size) {
     this.isEmptyLocation = function (row, col) {
 
         if(! _legalIndex(row, col)){
-            return;
+            // should not reach here
+            console.error("Illegal index row:" + row + " col: "+ col);
         }
 
         return _chessBoard[row][col] == PIECES_TYPE.NONE ;
@@ -517,7 +518,7 @@ var GoBang = function (board) {
     userInterface.setBtnRestart(this.start, this);
 };
 
-var board = new Board(15);
+var board = new Board(9);
 
 window.onload = function () {
     var game = new GoBang(board);

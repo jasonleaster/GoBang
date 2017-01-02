@@ -28,7 +28,7 @@ var GradeTable = {
     Cur_WakedOne   :8,
     Cur_WakedTwo   :40,
     Cur_WakedThree :800,
-    Cur_WakedFour  :4000,
+    Cur_WakedFour  :10000,
 
     // Grade results for opponent player
     Opp_SleepOne   :1,
@@ -38,7 +38,7 @@ var GradeTable = {
     Opp_WakedOne   :8,
     Opp_WakedTwo   :40,
     Opp_WakedThree :900,
-    Opp_WakedFour  :4000,
+    Opp_WakedFour  :10000,
 
     Five           :1000000  // Game Over
 
@@ -122,17 +122,21 @@ function ArtificialIntelligence(boardSize) {
     }
 
     function isWakedThree(line, pieceType) {
-        if(line.length != 5){
+        if(line.length != 6){
             return false
         }
 
         var condition1 = (line[1] == pieceType && line[2] == pieceType && line[3] == pieceType);
 
-        var condition2 = (line[1] == pieceType && line[2] == pieceType && line[4] == pieceType);
+        var condition2 = (line[2] == pieceType && line[3] == pieceType && line[4] == pieceType);
 
-        var condition3 = (line[1] == pieceType && line[3] == pieceType && line[4] == pieceType);
+        var condition3 = (line[0] == PIECES_TYPE.NONE && line[1] == pieceType && line[2] == pieceType &&
+                          line[3] == PIECES_TYPE.NONE && line[4] == pieceType && line[5] == PIECES_TYPE.NONE);
 
-        if(condition1 || condition2 || condition3){
+        var condition4 = (line[0] == PIECES_TYPE.NONE && line[1] == pieceType && line[2] == PIECES_TYPE.NONE &&
+                          line[3] == pieceType && line[4] == pieceType && line[5] == PIECES_TYPE.NONE);
+
+        if(condition1 || condition2 || condition3 || condition4){
             return true;
         }
 
@@ -197,7 +201,7 @@ function ArtificialIntelligence(boardSize) {
      *
      * @param wayToWin   某种赢法
      * @param pieceType  棋子类型
-     * @param count      对应已经满足该赢法条件的棋子数量
+     * @param count      对应已经  满足该赢法条件的棋子数量
      */
     function checkConnectedType(wayToWin, pieceType, count) {
 
@@ -209,7 +213,7 @@ function ArtificialIntelligence(boardSize) {
         var direction  = wayToWin.direction;
         var line;
 
-        if(count != 4){
+        if(count != 4 && count != 3){
             line = getPiecesOnALine(startPoint, direction, 5);
         }else{
             line = getPiecesOnALine(startPoint, direction, 6);
@@ -514,7 +518,9 @@ function ArtificialIntelligence(boardSize) {
                                 if(connectedType == ConnectedType.SleepFour){
                                     currentPlayerScore[i][j] += GradeTable.Cur_SleepFour;
                                 }else{
-                                    currentPlayerScore[i][j] += GradeTable.Cur_WakedFour;
+                                    currentPlayerScore[i][j] += GradeTable.Cur_WakdFour;
+                                    maxScore_CurrentPlayer = currentPlayerScore[i][j];
+                                    break;
                                 }
 
                             } else if(currentPlayerWins[k] == 3){
@@ -563,6 +569,8 @@ function ArtificialIntelligence(boardSize) {
                                     opponentPlayerScore[i][j] += GradeTable.Opp_SleepFour;
                                 }else{
                                     opponentPlayerScore[i][j] += GradeTable.Opp_WakedFour;
+                                    maxScore_OpponentPlayer = opponentPlayerScore[i][j];
+                                    break;
                                 }
 
                             }else if(opponentPlayerWins[k] == 3){
@@ -719,6 +727,22 @@ function ArtificialIntelligence(boardSize) {
     };
 
     function closeToAnyoneExistedPiece(row, col) {
+
+        // if( !board.isEmptyLocation(row - 1, col - 1) ||
+        //     !board.isEmptyLocation(row - 1, col)     ||
+        //     !board.isEmptyLocation(row - 1, col + 1) ||
+        //     !board.isEmptyLocation(row    , col - 1) ||
+        //
+        //     !board.isEmptyLocation(row    , col + 1) ||
+        //     !board.isEmptyLocation(row + 1, col - 1) ||
+        //     !board.isEmptyLocation(row + 1, col)     ||
+        //     !board.isEmptyLocation(row + 1, col + 1)
+        // ){
+        //     return true;
+        // }else{
+        //     return false;
+        // }
+
         var lowBoundary = board.getLowBoundary();
         var upBoundary  = board.getUpBoundary();
         var distance = 0;
@@ -729,7 +753,11 @@ function ArtificialIntelligence(boardSize) {
 
                     distance = (row - i) * (row - i) + (col - j) * (col - j);
 
-                    if(distance > 2)
+                    /*
+                    * 这里必须设置为3不能跳过距离平方等于2的情况。
+                    * 因为距离等于2的情况是对角线。
+                    * */
+                    if(distance >= 3)
                     {
                         continue;
                     }else{
@@ -792,7 +820,7 @@ function ArtificialIntelligence(boardSize) {
             }
         }
 
-        var savedStep = 4;
+        var savedStep = 2;
         if(steps.length > savedStep)
         {
             steps = steps.slice(0, savedStep);
@@ -1053,11 +1081,10 @@ function ArtificialIntelligence(boardSize) {
         return {"bestValue": bestValue, "bestStep":bestStep};
     }
 
-
     var stepsNum = 0;
     this.takeStep = function(player, board){
         debugger;
-        
+
         evaluationTimes = 0;
         hitCacheTimes   = 0;
         curOffTimes     = 0;
@@ -1070,14 +1097,12 @@ function ArtificialIntelligence(boardSize) {
         var SearchFunc = PrincipalVariationSearch;
         if(whoseTurn == PIECES_TYPE.BLACK){
 
-            result = AlphaBetaSearch(board, 2, -100000, +100000, true);
+            // Try to find killer threat
+            result = SearchFunc(board, 2, -100000, +100000, true);
 
             value = result.bestValue;
 
-            if(Math.abs(value) > (GradeTable.Cur_WakedThree - GradeTable.Cur_SleepThree)) {
-
-                MAX_DEPTH = 2; // Try to find killer threat
-                result = SearchFunc(board, MAX_DEPTH, -100000, +100000, true);
+            if(Math.abs(value) > (GradeTable.Cur_WakedThree - GradeTable.Cur_WakedTwo)) {
                 bestStep = result.bestStep;
             }else{
 
