@@ -416,10 +416,23 @@ var GoBang = function (board) {
 
         board.Init();
 
+        userInterface = new UI(size);
+        //  historySteps = new HistoryStep(this);
+        AI           = new ArtificialIntelligence(size, userInterface);
+
         userInterface.reset();
         userInterface.setCurrentStepinUI( historySteps.getCurrentStep() );
         userInterface.setTotalStepinUI(   historySteps.getTotalStep() );
 
+        var btn     = userInterface.getBtnBackStep();
+        btn.onclick = this.backStep;
+        // Not Support yet
+        // btn         = userInterface.getBtnNextStep();
+        // btn.onclick = this.nextStep;
+
+        userInterface.setUserClickFunc(User_Step, this);
+        userInterface.setBtnSaveTheBoard(historySteps.downloadAsJson, historySteps);
+        userInterface.setBtnUploadHistorySteps(historySteps.uploadHistorySteps, historySteps);
 
         var steps = historySteps.getSteps();
 
