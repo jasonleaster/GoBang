@@ -25,10 +25,10 @@ var GradeTable = {
     Cur_SleepTwo   :10,
     Cur_SleepThree :100,
     Cur_SleepFour  :3200,
-    Cur_WakedOne   :8,
-    Cur_WakedTwo   :40,
-    Cur_WakedThree :800,
-    Cur_WakedFour  :10000,
+    Cur_WakedOne   :10,
+    Cur_WakedTwo   :70,
+    Cur_WakedThree :1700,
+    Cur_WakedFour  :4000,
 
     // Grade results for opponent player
     Opp_SleepOne   :1,
@@ -37,10 +37,10 @@ var GradeTable = {
     Opp_SleepFour  :3200,
     Opp_WakedOne   :8,
     Opp_WakedTwo   :40,
-    Opp_WakedThree :900,
-    Opp_WakedFour  :10000,
+    Opp_WakedThree :1700,
+    Opp_WakedFour  :4000,
 
-    Five           :1000000  // Game Over
+    Five           :100000  // Game Over
 
 };
 
