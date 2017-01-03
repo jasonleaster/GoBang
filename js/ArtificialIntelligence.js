@@ -26,9 +26,9 @@ var GradeTable = {
     Cur_SleepThree :100,
     Cur_SleepFour  :3200,
     Cur_WakedOne   :10,
-    Cur_WakedTwo   :70,
+    Cur_WakedTwo   :60,
     Cur_WakedThree :1700,
-    Cur_WakedFour  :4000,
+    Cur_WakedFour  :8000,
 
     // Grade results for opponent player
     Opp_SleepOne   :1,
@@ -38,7 +38,7 @@ var GradeTable = {
     Opp_WakedOne   :8,
     Opp_WakedTwo   :40,
     Opp_WakedThree :1700,
-    Opp_WakedFour  :4000,
+    Opp_WakedFour  :8000,
 
     Five           :100000  // Game Over
 
@@ -509,43 +509,34 @@ function ArtificialIntelligence(boardSize) {
                             connectedType = checkConnectedType(wayToWin, currentPlayer, currentPlayerWins[k]);
 
                             if(currentPlayerWins[k] == 5){
-
-                                currentPlayerScore[i][j] += GradeTable.Five;
-                                maxScore_CurrentPlayer = currentPlayerScore[i][j];
-                                break;
+                                maxScore_CurrentPlayer += GradeTable.Five;
                             } else if(currentPlayerWins[k] == 4){
 
                                 if(connectedType == ConnectedType.SleepFour){
-                                    currentPlayerScore[i][j] += GradeTable.Cur_SleepFour;
+                                    maxScore_CurrentPlayer += GradeTable.Cur_SleepFour;
                                 }else{
-                                    currentPlayerScore[i][j] += GradeTable.Cur_WakdFour;
-                                    maxScore_CurrentPlayer = currentPlayerScore[i][j];
-                                    break;
+                                    maxScore_CurrentPlayer += GradeTable.Cur_WakdFour;
                                 }
 
                             } else if(currentPlayerWins[k] == 3){
                                 if(connectedType == ConnectedType.SleepThree){
-                                    currentPlayerScore[i][j] += GradeTable.Cur_SleepThree;
+                                    maxScore_CurrentPlayer += GradeTable.Cur_SleepThree;
                                 }else{
-                                    currentPlayerScore[i][j] += GradeTable.Cur_WakedThree;
+                                    maxScore_CurrentPlayer += GradeTable.Cur_WakedThree;
                                 }
                             } else if(currentPlayerWins[k] == 2){
                                 if(connectedType == ConnectedType.SleepTwo){
-                                    currentPlayerScore[i][j] += GradeTable.Cur_SleepTwo;
+                                    maxScore_CurrentPlayer += GradeTable.Cur_SleepTwo;
                                 }else{
-                                    currentPlayerScore[i][j] += GradeTable.Cur_WakedTwo;
+                                    maxScore_CurrentPlayer += GradeTable.Cur_WakedTwo;
                                 }
                             } else if(currentPlayerWins[k] == 1){
                                 if(connectedType == ConnectedType.SleepOne){
-                                    currentPlayerScore[i][j] += GradeTable.Cur_SleepOne;
+                                    maxScore_CurrentPlayer += GradeTable.Cur_SleepOne;
                                 }else{
-                                    currentPlayerScore[i][j] += GradeTable.Cur_WakedOne;
+                                    maxScore_CurrentPlayer += GradeTable.Cur_WakedOne;
                                 }
                             }
-                        }
-
-                        if(currentPlayerScore[i][j] > maxScore_CurrentPlayer){
-                            maxScore_CurrentPlayer = currentPlayerScore[i][j];
                         }
                     }
                 }else if (! board.isEmptyLocation(i, j)){
@@ -559,45 +550,39 @@ function ArtificialIntelligence(boardSize) {
 
                             if(opponentPlayerWins[k] == 5){
 
-                                opponentPlayerScore[i][j] += GradeTable.Five;
-                                maxScore_OpponentPlayer = opponentPlayerScore[i][j];
-                                break;
-
+                                maxScore_OpponentPlayer += GradeTable.Five;
                             }else if(opponentPlayerWins[k] == 4){
 
                                 if(connectedType == ConnectedType.SleepFour){
-                                    opponentPlayerScore[i][j] += GradeTable.Opp_SleepFour;
+                                    maxScore_OpponentPlayer += GradeTable.Opp_SleepFour;
                                 }else{
-                                    opponentPlayerScore[i][j] += GradeTable.Opp_WakedFour;
-                                    maxScore_OpponentPlayer = opponentPlayerScore[i][j];
-                                    break;
+                                    maxScore_OpponentPlayer += GradeTable.Opp_WakedFour;
+                                   
                                 }
 
                             }else if(opponentPlayerWins[k] == 3){
                                 if(connectedType == ConnectedType.SleepThree){
-                                    opponentPlayerScore[i][j] += GradeTable.Opp_SleepThree;
+                                    maxScore_OpponentPlayer += GradeTable.Opp_SleepThree;
                                 }else{
-                                    opponentPlayerScore[i][j] += GradeTable.Opp_WakedThree;
+                                    maxScore_OpponentPlayer += GradeTable.Opp_WakedThree;
                                 }
                             }else if(opponentPlayerWins[k] == 2){
                                 if(connectedType == ConnectedType.SleepTwo){
-                                    opponentPlayerScore[i][j] += GradeTable.Opp_SleepTwo;
+                                    maxScore_OpponentPlayer += GradeTable.Opp_SleepTwo;
                                 }else{
-                                    opponentPlayerScore[i][j] += GradeTable.Opp_WakedTwo;
+                                    maxScore_OpponentPlayer += GradeTable.Opp_WakedTwo;
                                 }
 
                             }else if(opponentPlayerWins[k] == 1){
                                 if(connectedType == ConnectedType.SleepOne){
-                                    opponentPlayerScore[i][j] += GradeTable.Opp_SleepOne;
+                                    maxScore_OpponentPlayer += GradeTable.Opp_SleepOne;
                                 }else{
-                                    opponentPlayerScore[i][j] += GradeTable.Opp_WakedOne;
+                                    maxScore_OpponentPlayer += GradeTable.Opp_WakedOne;
                                 }
                             }
                         }
 
-                        if(opponentPlayerScore[i][j] > maxScore_OpponentPlayer){
-                            maxScore_OpponentPlayer = opponentPlayerScore[i][j];
-                        }
+                     
                     }
                 }
             }
@@ -1098,7 +1083,7 @@ function ArtificialIntelligence(boardSize) {
         if(whoseTurn == PIECES_TYPE.BLACK){
 
             // Try to find killer threat
-            result = SearchFunc(board, 2, -100000, +100000, true);
+            result = SearchFunc(board, 4, -100000, +100000, true);
 
             value = result.bestValue;
 
