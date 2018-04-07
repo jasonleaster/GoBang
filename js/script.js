@@ -531,7 +531,7 @@ var GoBang = function (board) {
     userInterface.setBtnRestart(this.start, this);
 };
 
-var board = new Board(11);
+var board = new Board(15);
 
 window.onload = function () {
     var game = new GoBang(board);

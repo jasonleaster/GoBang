@@ -40,7 +40,7 @@ var GradeTable = {
     Opp_WakedThree :1700,
     Opp_WakedFour  :8000,
 
-    Five           :100000  // Game Over
+    Five           :1000000  // Game Over
 
 };
 
@@ -742,7 +742,7 @@ function ArtificialIntelligence(boardSize) {
                     * 这里必须设置为3不能跳过距离平方等于2的情况。
                     * 因为距离等于2的情况是对角线。
                     * */
-                    if(distance >= 3)
+                    if(distance >= 4)
                     {
                         continue;
                     }else{
@@ -815,7 +815,7 @@ function ArtificialIntelligence(boardSize) {
     }
 
     var bestStep;
-    var MAX_DEPTH = 3;
+    var MAX_DEPTH = 2;
 
     /**
      * Min-Max Search
