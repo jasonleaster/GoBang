@@ -28,7 +28,7 @@ var GradeTable = {
     Cur_WakedOne   :10,
     Cur_WakedTwo   :60,
     Cur_WakedThree :1700,
-    Cur_WakedFour  :8000,
+    Cur_WakedFour  :80000,
 
     // Grade results for opponent player
     Opp_SleepOne   :1,
@@ -38,7 +38,7 @@ var GradeTable = {
     Opp_WakedOne   :8,
     Opp_WakedTwo   :40,
     Opp_WakedThree :1700,
-    Opp_WakedFour  :8000,
+    Opp_WakedFour  :80000,
 
     Five           :1000000  // Game Over
 
@@ -815,7 +815,7 @@ function ArtificialIntelligence(boardSize) {
     }
 
     var bestStep;
-    var MAX_DEPTH = 2;
+    var MAX_DEPTH = 5;
 
     /**
      * Min-Max Search
@@ -976,7 +976,7 @@ function ArtificialIntelligence(boardSize) {
         var bestValue;
         var bestStep;
 
-        if(depth <= 0){
+        if(depth <= 0 || ( GradeTable.Cur_WakedThree <= (alpha - beta))){
             evaluationTimes++;
             var key = board.getHashValue();
             if(key in cacheTable){
@@ -1068,7 +1068,6 @@ function ArtificialIntelligence(boardSize) {
 
     var stepsNum = 0;
     this.takeStep = function(player, board){
-        debugger;
 
         evaluationTimes = 0;
         hitCacheTimes   = 0;
@@ -1083,7 +1082,7 @@ function ArtificialIntelligence(boardSize) {
         if(whoseTurn == PIECES_TYPE.BLACK){
 
             // Try to find killer threat
-            result = SearchFunc(board, 4, -100000, +100000, true);
+            result = SearchFunc(board, MAX_DEPTH, -100000, +100000, true);
 
             value = result.bestValue;
 
