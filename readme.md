@@ -1,4 +1,5 @@
-###GoBang Game in JavaScript with navtive AI
+
+### GoBang Game in JavaScript with navtive AI
 
 This is a program which implement the game Go-Bang .It also called as "Five in a Row".You can drop a piece by single-click on the board.
 
