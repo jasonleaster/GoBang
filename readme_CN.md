@@ -1,4 +1,4 @@
-###GoBang Game in JavaScript with navtive AI
+### GoBang Game in JavaScript with navtive AI
 
 **当前版本: 3.7**
 
